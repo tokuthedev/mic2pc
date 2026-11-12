@@ -1,0 +1,14 @@
+# Python
+pc-receiver/venv/
+pc-receiver/__pycache__/
+*.pyc
+*.pyo
+
+# Android / Gradle
+android-app/.gradle/
+android-app/build/
+android-app/*/build/
+android-app/local.properties
+.idea/
+*.iml
+.DS_Store

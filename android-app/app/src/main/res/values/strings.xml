@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">mic2pc</string>
+    <string name="title_app">mic2pc Mikrofon</string>
+    <string name="target_ip_hint">Örn: 192.168.1.34</string>
+    <string name="port_hint">50005</string>
+    <string name="status_disconnected">Bağlantı Kesildi</string>
+    <string name="status_streaming">Canlı Ses İletiliyor...</string>
+    <string name="btn_start">Yayını Başlat</string>
+    <string name="btn_stop">Yayını Durdur</string>
+    <string name="perm_mic_required">Mikrofon izni gereklidir.</string>
+</resources>
