@@ -1,10 +1,10 @@
-# 🎙️ mic2pc
+# mic2pc
 
 **mic2pc**, Android telefonunuzu bilgisayarınıza **ultra düşük gecikmeli (low-latency)** bir mikrofona dönüştüren iki parçalı açık kaynaklı bir sistemdir. Rekabetçi oyunlarda (CS2, Valorant, Rainbow Six Siege vb.) ve Discord sesli sohbetlerinde kristal netliğinde ve sıfıra yakın gecikmeyle kullanılmak üzere tasarlanmıştır.
 
 ---
 
-## 🏗️ Mimari ve Çalışma Mantığı
+## Mimari ve Çalışma Mantığı
 
 ```mermaid
 flowchart LR
@@ -42,7 +42,7 @@ flowchart LR
 
 ---
 
-## 📂 Proje Dizin Yapısı
+## Proje Dizin Yapısı
 
 ```text
 mic2pc/
@@ -76,7 +76,7 @@ mic2pc/
 
 ---
 
-## 🛠️ Kurulum Adımları
+## Kurulum Adımları
 
 ### 1. VB-CABLE Sanal Ses Kablosunu Kurma (Zorunlu)
 Windows'un telefonunuzu gerçek bir mikrofon olarak algılaması için ücretsiz bir sanal ses kablosu gereklidir:
@@ -118,7 +118,7 @@ Telefonunuzdaki sesin Discord ve oyunlara gitmesi için:
 
 ---
 
-## 🚀 Ultra Düşük Gecikme (Low-Latency) Tavsiyeleri
+## Ultra Düşük Gecikme (Low-Latency) Tavsiyeleri
 
 | Bağlantı Türü | Ortalama Gecikme | Önerilen Senaryo |
 | :--- | :--- | :--- |
@@ -132,7 +132,7 @@ Telefonunuzdaki sesin Discord ve oyunlara gitmesi için:
 
 ---
 
-## 🛡️ Güvenlik Duvarı İzni (İlk Sefer İçin)
+## Güvenlik Duvarı İzni (İlk Sefer İçin)
 Eğer telefondan yayını başlattığınızda PC'de sayaç artmıyorsa:
 - Windows Güvenlik Duvarı açılır penceresinde **Özel ve Ortak ağlarda Python'a izin ver** kutucuklarını işaretleyin.
 - Veya Windows Güvenlik Duvarından UDP `50005` portuna izin verin.
