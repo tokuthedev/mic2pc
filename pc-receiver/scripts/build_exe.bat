@@ -13,7 +13,7 @@ pip install pyinstaller -q
 
 echo.
 echo mic2pc.exe derleniyor (Tek dosya, ikonlu, penceresiz)...
-pyinstaller --noconsole --onefile --name "mic2pc" --icon "icon.ico" --add-data "icon.png;." --add-data "icon.ico;." --add-data "fonts;fonts" --collect-all customtkinter --clean main.py
+pyinstaller --noconsole --onefile --name "mic2pc" --icon "icon.ico" --add-data "icon.png;." --add-data "icon.ico;." --add-data "fonts;fonts" --add-data "icons;icons" --collect-all customtkinter --clean main.py
 
 if exist "dist\mic2pc.exe" (
     copy /Y "dist\mic2pc.exe" "..\mic2pc.exe"

@@ -39,6 +39,32 @@ def load_custom_fonts():
 load_custom_fonts()
 FONT_FAMILY = "Manrope"
 
+
+def get_material_icon(icon_name: str, hex_color: str, size: Tuple[int, int] = (22, 22)) -> Optional[ctk.CTkImage]:
+    """Material Symbols ikonunu belirtilen renkte ve boyutta dinamik üretir."""
+    icon_file = os.path.join(BASE_DIR, "icons", f"{icon_name}.png")
+    if not os.path.exists(icon_file):
+        return None
+    try:
+        img = Image.open(icon_file).convert("RGBA")
+        r = int(hex_color[1:3], 16)
+        g = int(hex_color[3:5], 16)
+        b = int(hex_color[5:7], 16)
+
+        _, _, _, alpha = img.split()
+        colored = Image.merge(
+            "RGBA",
+            (
+                alpha.point(lambda p: r if p > 0 else 0),
+                alpha.point(lambda p: g if p > 0 else 0),
+                alpha.point(lambda p: b if p > 0 else 0),
+                alpha,
+            ),
+        )
+        return ctk.CTkImage(light_image=colored, dark_image=colored, size=size)
+    except Exception:
+        return None
+
 # Material Design 3 Renk Temaları
 THEMES: Dict[str, Dict[str, str]] = {
     "Lavender": {
@@ -200,10 +226,15 @@ class Mic2PcApp(ctk.CTk):
         )
         lbl_app_name.pack(side="left")
 
-        # Navigasyon Butonları (M3 Pill Tabs)
-        self._create_nav_button("stream", "🎙️  Yayın", "stream")
-        self._create_nav_button("stats", "📊  İstatistikler", "stats")
-        self._create_nav_button("settings", "⚙️  Ayarlar", "settings")
+        # Navigasyon Butonları (Google Material Symbols İkonlarıyla)
+        self.nav_icons = {
+            "stream": "wifi_tethering",
+            "stats": "analytics",
+            "settings": "settings"
+        }
+        self._create_nav_button("stream", "  Yayın", "wifi_tethering")
+        self._create_nav_button("stats", "  İstatistikler", "analytics")
+        self._create_nav_button("settings", "  Ayarlar", "settings")
 
         # Alt Kısım: Durum Hapı
         self.nav_status_frame = ctk.CTkFrame(
@@ -243,10 +274,13 @@ class Mic2PcApp(ctk.CTk):
         # Varsayılan sekmeyi aç
         self._select_tab("stream")
 
-    def _create_nav_button(self, tab_id: str, label: str, icon_symbol: str):
+    def _create_nav_button(self, tab_id: str, label: str, icon_name: str):
+        icon_img = get_material_icon(icon_name, M3_ON_SURFACE_VARIANT, size=(22, 22))
         btn = ctk.CTkButton(
             self.nav_rail,
             text=label,
+            image=icon_img,
+            compound="left",
             height=46,
             corner_radius=23,
             font=ctk.CTkFont(family=FONT_FAMILY, size=13, weight="bold"),
@@ -262,15 +296,20 @@ class Mic2PcApp(ctk.CTk):
     def _select_tab(self, tab_id: str):
         self.active_tab = tab_id
         for tid, btn in self.nav_buttons.items():
+            icon_name = self.nav_icons.get(tid, "")
             if tid == tab_id:
+                active_icon = get_material_icon(icon_name, self.theme["on_primary_container"], size=(22, 22))
                 btn.configure(
                     fg_color=self.theme["primary_container"],
                     text_color=self.theme["on_primary_container"],
+                    image=active_icon,
                 )
             else:
+                inactive_icon = get_material_icon(icon_name, M3_ON_SURFACE_VARIANT, size=(22, 22))
                 btn.configure(
                     fg_color="transparent",
                     text_color=M3_ON_SURFACE_VARIANT,
+                    image=inactive_icon,
                 )
 
         for tid, frame in self.tab_frames.items():
@@ -664,10 +703,13 @@ class Mic2PcApp(ctk.CTk):
 
         # Navigasyon butonunu güncelle
         for tid, btn in self.nav_buttons.items():
+            icon_name = self.nav_icons.get(tid, "")
             if tid == self.active_tab:
+                active_icon = get_material_icon(icon_name, self.theme["on_primary_container"], size=(22, 22))
                 btn.configure(
                     fg_color=self.theme["primary_container"],
                     text_color=self.theme["on_primary_container"],
+                    image=active_icon,
                 )
 
         # Ana buton ve elemanları güncelle
