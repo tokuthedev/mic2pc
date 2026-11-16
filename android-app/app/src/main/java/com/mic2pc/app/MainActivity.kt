@@ -58,11 +58,38 @@ class MainActivity : AppCompatActivity() {
 
         // Uygulama açılışında arka planda sessizce güncelleme kontrolü yap
         AppUpdater.checkForUpdate(
-            currentVersionCode = 1,
+            currentVersionCode = getCurrentVersionCode(),
             onUpdateFound = { updateInfo ->
                 AppUpdater.showUpdateDialog(this, updateInfo)
             }
         )
+    }
+
+    private fun getCurrentVersionCode(): Int {
+        return try {
+            val pInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                pInfo.longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                pInfo.versionCode
+            }
+        } catch (e: Exception) {
+            1
+        }
+    }
+
+    private fun getCurrentVersionName(): String {
+        return try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+        } catch (e: Exception) {
+            "1.0.0"
+        }
     }
 
     override fun onResume() {
@@ -187,16 +214,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Otomatik Güncelleme (In-App Auto Update)
-        binding.tvAppVersion.text = "Mevcut Sürüm: v1.0.0"
+        val curVerName = getCurrentVersionName()
+        val curVerCode = getCurrentVersionCode()
+        binding.tvAppVersion.text = "Mevcut Sürüm: v$curVerName (Kod: $curVerCode)"
+
         binding.btnCheckUpdate.setOnClickListener {
             Toast.makeText(this, "Güncellemeler denetleniyor...", Toast.LENGTH_SHORT).show()
             AppUpdater.checkForUpdate(
-                currentVersionCode = 1,
+                currentVersionCode = curVerCode,
                 onUpdateFound = { updateInfo ->
                     AppUpdater.showUpdateDialog(this, updateInfo)
                 },
                 onUpToDate = {
-                    Toast.makeText(this, "mic2pc en güncel sürümde! (v1.0.0)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "mic2pc en güncel sürümde! (v$curVerName)", Toast.LENGTH_SHORT).show()
                 },
                 onError = { err ->
                     Toast.makeText(this, "Güncelleme denetlenemedi: $err", Toast.LENGTH_SHORT).show()

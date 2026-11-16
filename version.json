@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "apkUrl": "https://github.com/tokuthedev/mic2pc/releases/latest/download/mic2pc.apk",
-  "changelog": "mic2pc v1.0.0:\n• Material Design 3 (LocalSend tarzı) sekmeli arayüz\n• Ultra düşük gecikmeli UDP ses motoru (10-25ms)\n• Donanımsal gürültü engelleme ve stüdyo modları\n• Dijital ses kazancı (Gain booster)\n• Uygulama içi otomatik güncelleme (In-App Auto Update)"
+  "versionCode": 2,
+  "versionName": "1.1.0",
+  "apkUrl": "https://github.com/tokuthedev/mic2pc/releases/download/v1.1.0/mic2pc.apk",
+  "changelog": "• Google Material Symbols Outlined ikonları (Yayın, İstatistikler, Ayarlar)\n• Manrope font ailesi entegrasyonu\n• Uygulama İçi Otomatik Güncelleme (In-App Auto Update)\n• Saat kayması düzeltmesi (Gerçek 10-25ms ağ gecikmesi)"
 }
