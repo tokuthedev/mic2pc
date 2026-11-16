@@ -9,5 +9,7 @@
         <item name="colorOnPrimaryContainer">@color/m3_on_primary_container</item>
         <item name="colorSurface">@color/m3_surface</item>
         <item name="colorOnSurface">@color/m3_on_surface</item>
+        <item name="fontFamily">@font/manrope</item>
+        <item name="android:fontFamily">@font/manrope</item>
     </style>
 </resources>

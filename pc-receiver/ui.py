@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 import subprocess
+import ctypes
 from typing import List, Optional, Tuple, Dict
 import customtkinter as ctk
 import pystray
@@ -18,7 +19,25 @@ ctk.set_default_color_theme("blue")
 BASE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 ICON_PATH = os.path.join(BASE_DIR, "icon.png")
 ICO_PATH = os.path.join(BASE_DIR, "icon.ico")
-FONT_FAMILY = "Segoe UI"
+
+
+def load_custom_fonts():
+    """Windows oturumuna Manrope font ailesini geçici olarak kaydeder."""
+    fonts_dir = os.path.join(BASE_DIR, "fonts")
+    if os.path.exists(fonts_dir):
+        FR_PRIVATE = 0x10
+        for font_file in os.listdir(fonts_dir):
+            if font_file.lower().endswith((".ttf", ".otf")):
+                font_path = os.path.join(fonts_dir, font_file)
+                try:
+                    ctypes.windll.gdi32.AddFontResourceExW(font_path, FR_PRIVATE, 0)
+                except Exception:
+                    pass
+
+
+# Manrope fontunu yükle
+load_custom_fonts()
+FONT_FAMILY = "Manrope"
 
 # Material Design 3 Renk Temaları
 THEMES: Dict[str, Dict[str, str]] = {
