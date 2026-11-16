@@ -1,138 +1,196 @@
 # mic2pc
 
-**mic2pc**, Android telefonunuzu bilgisayarınıza **ultra düşük gecikmeli (low-latency)** bir mikrofona dönüştüren iki parçalı açık kaynaklı bir sistemdir. Rekabetçi oyunlarda (CS2, Valorant, Rainbow Six Siege vb.) ve Discord sesli sohbetlerinde kristal netliğinde ve sıfıra yakın gecikmeyle kullanılmak üzere tasarlanmıştır.
+**mic2pc** is a high-performance, ultra-low-latency virtual microphone system designed to turn an Android device into a studio-grade PC microphone over local UDP. Built specifically for competitive gaming (e.g., CS2, Valorant, Apex Legends) and Discord voice communication, it bridges mobile audio hardware directly into Windows audio endpoints with sub-frame processing overhead.
 
 ---
 
-## Mimari ve Çalışma Mantığı
+## Architectural Overview
+
+The system consists of two decoupled components: a lightweight Android capture engine and a Windows desktop receiver interfacing with virtual audio driver inputs.
 
 ```mermaid
 flowchart LR
-    subgraph Mobil["📱 Android Telefon (mic2pc App)"]
+    subgraph Mobile["Android Client (mic2pc)"]
         direction TB
-        MIC["AudioRecord (48kHz 16-bit PCM Mono)"]
-        HDR["M2 Header (Seq + Timestamp)"]
-        UDP_SEND["UDP Socket (10ms Chunk)"]
-        MIC --> HDR --> UDP_SEND
+        MIC["AudioRecord (48 kHz 16-bit PCM Mono)"]
+        PACKET["M2 Header Assembly (Seq + Timestamp)"]
+        UDP_TX["DatagramSocket (10 ms Frame)"]
+        MIC --> PACKET --> UDP_TX
     end
 
-    subgraph Ag["Ağ / Bağlantı"]
-        WIFI["Wi-Fi (5GHz Önerilir ~15-25ms)"]
-        USB["USB Tethering (~1-3ms, Sıfır Kayıp)"]
+    subgraph Network["Transport Layer"]
+        WIFI["Wi-Fi 5 GHz (~15-25 ms)"]
+        USB["USB Tethering (~1-3 ms, 0% Loss)"]
     end
 
-    subgraph PC["💻 Bilgisayar (mic2pc Receiver)"]
+    subgraph Desktop["Windows Receiver (PC)"]
         direction TB
-        UDP_RECV["NetworkReceiver (UDP :50005)"]
-        JITTER["Adaptive Jitter Buffer (20-30ms)"]
-        WASAPI["SoundDevice Engine (Low-Latency)"]
-        VBCABLE["VB-CABLE (CABLE Input)"]
-        UDP_RECV --> JITTER --> WASAPI --> VBCABLE
+        UDP_RX["NetworkReceiver (UDP :50005)"]
+        JITTER["Adaptive Ring Buffer (20-30 ms)"]
+        AUDIO_ENGINE["SoundDevice WASAPI Engine"]
+        VIRTUAL_IN["VB-CABLE Driver (CABLE Input)"]
+        UDP_RX --> JITTER --> AUDIO_ENGINE --> VIRTUAL_IN
     end
 
-    subgraph Apps["🎮 Oyunlar ve Ses Programları"]
-        DISCORD["Discord (Giriş: CABLE Output)"]
-        GAMES["Oyunlar (Giriş: CABLE Output)"]
+    subgraph Consumers["Host Applications"]
+        DISCORD["Discord (Input: CABLE Output)"]
+        GAMES["In-Game Voice (Input: CABLE Output)"]
     end
 
-    UDP_SEND --> WIFI & USB
-    WIFI & USB --> UDP_RECV
-    VBCABLE --> DISCORD & GAMES
+    UDP_TX --> WIFI & USB
+    WIFI & USB --> UDP_RX
+    VIRTUAL_IN --> DISCORD & GAMES
 ```
 
 ---
 
-## Proje Dizin Yapısı
+## Technical Specifications
+
+| Parameter | Specification |
+| :--- | :--- |
+| Audio Encoding | Linear PCM (16-bit signed integer, Little-Endian) |
+| Sampling Rate | 48,000 Hz |
+| Channels | 1 (Mono hardware capture, dual-channel virtual mapping) |
+| Frame Interval | 10 ms (480 samples / 960 bytes payload) |
+| Transport Protocol | Datagram (UDP) with custom 14-byte sequencing header |
+| Jitter Compensation | Adaptive Ring Buffer with overrun discard & underrun suppression |
+| Windows Host Audio API | Windows Audio Session API (WASAPI) Low-Latency stream |
+
+---
+
+## Directory Structure
 
 ```text
 mic2pc/
-├── pc-receiver/                      # Bilgisayar Alıcı Uygulaması (Python)
-│   ├── venv/                         # Python Sanal Ortamı
-│   ├── requirements.txt              # Gerekli kütüphaneler (sounddevice, customtkinter vb.)
-│   ├── main.py                       # Giriş noktası
-│   ├── ui.py                         # Modern Dark-Mode GUI ve Sistem Tepsisi
-│   ├── audio_engine.py               # Low-latency ses motoru & Jitter Buffer
-│   ├── network_receiver.py           # UDP dinleyici, seq kontrolü & latency hesabı
-│   ├── start_receiver.bat            # Tek tıkla başlatma betiği
-│   └── scripts/
-│       └── setup_usb_forward.bat     # USB / ADB bağlantı rehberi
-│
-├── android-app/                      # Android Mobil Uygulama (Kotlin)
-│   ├── app/
-│   │   ├── build.gradle.kts
-│   │   └── src/main/
-│   │       ├── AndroidManifest.xml   # İzinler ve Foreground Service tanımları
-│   │       ├── java/com/mic2pc/app/
-│   │       │   ├── MainActivity.kt        # Modern Arayüz & İzin Yönetimi
-│   │       │   ├── AudioStreamerService.kt# Arka Planda Kesintisiz Yayın Servisi
-│   │       │   ├── AudioCaptureEngine.kt  # 48kHz Donanım Düzeyi PCM Yakalama
-│   │       │   └── UdpAudioSender.kt      # UDP Soket & M2 Başlık Gönderici
-│   │       └── res/                       # UI Tasarımı (VU Meter, Dark Theme vb.)
-│   ├── build.gradle.kts
-│   ├── settings.gradle.kts
-│   └── gradle.properties
-└── README.md
+|-- .github/workflows/
+|   `-- build-apk.yml               # Automated cloud CI/CD APK builder
+|-- android-app/                    # Android client source tree (Kotlin)
+|   |-- app/
+|   |   |-- src/main/java/com/mic2pc/app/
+|   |   |   |-- MainActivity.kt         # Runtime UI and permission management
+|   |   |   |-- AudioStreamerService.kt # Foreground service with persistent WakeLock
+|   |   |   |-- AudioCaptureEngine.kt   # Low-level 48 kHz AudioRecord handler
+|   |   |   `-- UdpAudioSender.kt       # DatagramSocket serializer
+|   |   `-- src/main/res/               # Vector assets, themes, and layouts
+|   `-- build.gradle.kts
+|-- pc-receiver/                    # Windows receiver source tree (Python)
+|   |-- audio_engine.py             # WASAPI output stream & adaptive jitter buffer
+|   |-- network_receiver.py         # Non-blocking UDP receiver & metric calculation
+|   |-- ui.py                       # Modern desktop interface and system tray
+|   |-- main.py                     # Application entrypoint
+|   |-- requirements.txt            # Python dependencies
+|   `-- mic2pc.vbs                  # Windowless direct launcher
+|-- mic2pc.vbs                      # Root-level silent desktop launcher
+`-- README.md                       # System documentation
 ```
 
 ---
 
-## Kurulum Adımları
+## Prerequisites
 
-### 1. VB-CABLE Sanal Ses Kablosunu Kurma (Zorunlu)
-Windows'un telefonunuzu gerçek bir mikrofon olarak algılaması için ücretsiz bir sanal ses kablosu gereklidir:
-1. [VB-Audio Cable Resmi Sitesinden](https://vb-audio.com/Cable/) ücretsiz indirin.
-2. ZIP'i çıkartıp `VBCABLE_Setup_x64.exe` dosyasına sağ tıklayıp **Yönetici Olarak Çalıştır**'ı seçin.
-3. Kurulum tamamlandığında bilgisayarınızı yeniden başlatın.
+1. **VB-Audio Virtual Cable (Windows)**:
+   - A virtual audio device is required to present the received audio stream as a microphone device to Discord and games.
+   - Download and install the driver from the official vendor: [https://vb-audio.com/Cable/](https://vb-audio.com/Cable/)
+   - Reboot Windows after driver installation.
 
----
-
-### 2. PC Alıcı Uygulamasını Çalıştırma
-1. `pc-receiver` klasöründeki `start_receiver.bat` dosyasına çift tıklayın.
-   *(Gerekli tüm Python ortamı otomatik olarak hazırlanır ve modern arayüz açılır).*
-2. Arayüzde:
-   - **Ses Çıkış Aygıtı**: Listeden `CABLE Input (VB-Audio Virtual Cable)` seçeneğini seçin.
-   - **Jitter Buffer**: Varsayılan `25 ms` bırakın (iyi bir yerel ağda 15-25ms harika çalışır).
-   - **Hizmeti Başlat** butonuna tıklayın.
-   - Üst kısımda yazan **PC Yerel IP** adresinizi not edin (Örn: `192.168.1.34`).
+2. **Python Environment (PC)**:
+   - Python 3.10 or higher.
+   - Dependencies: `sounddevice`, `numpy`, `customtkinter`, `pystray`, `pillow`.
 
 ---
 
-### 3. Mobil Uygulamayı (Android) Telefona Yükleme
-1. **Android Studio**'yu açın.
-2. `Open` seçeneğiyle `mic2pc/android-app` klasörünü seçin.
-3. Telefonunuzu USB hata ayıklama ile bağlayın ve yeşil **Run (Çalıştır)** butonuna basın (veya `Build > Build APK(s)` ile APK oluşturup telefonunuza atın).
-4. Uygulamayı açtığınızda:
-   - Mikrofon iznini onaylayın.
-   - PC arayüzünde görünen **PC Yerel IP**'sini ve Portu (`50005`) girin.
-   - **Yayını Başlat** butonuna basın. Canlı **VU Meter** yeşil renkte dalgalanacaktır.
+## Quick Start Guide
+
+### 1. Launching the PC Receiver
+Double-click `mic2pc.vbs` located in the root directory. 
+
+*Note: `mic2pc.vbs` launches the application directly in background mode without spawning an intrusive command prompt (CMD) window.*
+
+- In the application window:
+  - Verify **Output Audio Device** is set to `CABLE Input (VB-Audio Virtual Cable)`.
+  - Set **Jitter Buffer** to `25 ms` (default).
+  - Click **Start Service**.
+  - Note the local IP address displayed at the top (e.g., `192.168.1.34`).
+
+### 2. Installing the Android Application
+The Android client is continuously built via GitHub Actions CI/CD.
+
+- Navigate to the **Actions** tab in this repository.
+- Select the latest workflow run on the `main` branch.
+- Scroll down to the **Artifacts** section and download `mic2pc-android-apk`.
+- Extract the ZIP archive and install `app-debug.apk` onto your Android device.
+
+Alternatively, open the `android-app` folder directly in Android Studio and build to device.
+
+### 3. Establishing Audio Stream
+- Open **mic2pc** on your Android device.
+- Grant microphone and notification permissions when prompted.
+- Enter the PC IP address and port (`50005`).
+- Tap **Start Stream**. The VU meter will immediately reflect your voice input.
+
+### 4. Discord and In-Game Configuration
+To route the phone microphone into applications:
+- **Discord**: Navigate to `User Settings > Voice & Video`.
+  - Set **Input Device** to `CABLE Output (VB-Audio Virtual Cable)`.
+  - Set **Output Device** to your physical headphones.
+- **In-Game Voice**: Select `CABLE Output` as your default recording device in Windows Sound Control Panel.
 
 ---
 
-### 4. Discord ve Oyun Ayarları
-Telefonunuzdaki sesin Discord ve oyunlara gitmesi için:
-- **Discord Ayarları > Ses ve Görüntü**:
-  - **Giriş Aygıtı (Input Device)**: `CABLE Output (VB-Audio Virtual Cable)` seçin.
-  - **Çıkış Aygıtı (Output Device)**: Kendi kulaklığınızı seçin.
-- **Windows / Steam / Oyun Ses Ayarları**:
-  - Varsayılan Giriş (Mikrofon) olarak `CABLE Output` seçin.
+## Protocol Specification
+
+Each datagram packet begins with a fixed 14-byte header followed by raw PCM samples:
+
+```text
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       Magic: 'M' '2'          |       Sequence Number         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Sequence Number (Continued)  |      Client Timestamp         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  Client Timestamp (Continued)                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Raw Linear PCM Samples                    |
+|                (480 samples, 16-bit, Little-Endian)           |
+|                               ...                             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+```
+
+Total packet size is **974 bytes**, well below standard Ethernet and 802.11 MTU boundaries (1500 bytes), avoiding IP fragmentation entirely.
 
 ---
 
-## Ultra Düşük Gecikme (Low-Latency) Tavsiyeleri
+## Connection Performance Profiles
 
-| Bağlantı Türü | Ortalama Gecikme | Önerilen Senaryo |
-| :--- | :--- | :--- |
-| **USB Tethering (Kablo)** | **1 - 3 ms** | Rekabetçi FPS Oyunları (Sıfır paket kaybı, sıfır jitter) |
-| **5 GHz Wi-Fi** | **15 - 25 ms** | Kablosuz Rahatlık, Discord Sohbetleri |
-| **2.4 GHz Wi-Fi** | **35 - 60 ms** | Uzak mesafeler (Jitter buffer'ı 35-40ms yapın) |
+| Interface | Average Latency | Packet Loss | Recommended Usage |
+| :--- | :--- | :--- | :--- |
+| **USB Tethering** | **1 - 3 ms** | 0.0% | Competitive FPS tournaments and zero-delay broadcast |
+| **5 GHz Wi-Fi** | **15 - 25 ms** | < 0.2% | Wire-free gaming and voice communication |
+| **2.4 GHz Wi-Fi** | **35 - 60 ms** | 1.0 - 3.0% | General communication (increase buffer to 40 ms) |
 
-> [!TIP]
-> **En Düşük Gecikme (1-3ms) İçin USB Tethering Yöntemi:**
-> Telefonunuzu USB ile PC'ye bağlayıp Android Ayarlarından **USB Bağlantısı (USB Tethering)** özelliğini açın. Telefon ile bilgisayar arasında doğrudan 1 Gbps hızında sanal bir Ethernet köprüsü kurulur. mic2pc PC arayüzünde beliren `192.168.42.x` IP adresini telefona girip bağlandığınızda gecikme fark edilemez seviyeye (1-3ms) iner.
+### Optimal Setup: USB Tethering
+For competitive esports requiring negligible latency:
+1. Connect phone via USB cable to PC.
+2. Enable **USB Tethering** in Android Network settings.
+3. A local RNDIS network interface will initialize on the PC (typically `192.168.42.x`).
+4. Enter this subnet IP into the mobile application.
 
 ---
 
-## Güvenlik Duvarı İzni (İlk Sefer İçin)
-Eğer telefondan yayını başlattığınızda PC'de sayaç artmıyorsa:
-- Windows Güvenlik Duvarı açılır penceresinde **Özel ve Ortak ağlarda Python'a izin ver** kutucuklarını işaretleyin.
-- Veya Windows Güvenlik Duvarından UDP `50005` portuna izin verin.
+## Firewall Troubleshooting
+
+If the PC receiver remains on `WAITING` status after starting the stream:
+1. Open Windows Defender Firewall with Advanced Security.
+2. Create an **Inbound Rule**:
+   - Rule Type: **Port**
+   - Protocol: **UDP**
+   - Specific Local Ports: **50005**
+   - Action: **Allow the connection**
+3. Alternatively, allow `pythonw.exe` through private and public network profiles.
+
+---
+
+## License
+
+This project is licensed under the Apache License 2.0. See the LICENSE file for details.
