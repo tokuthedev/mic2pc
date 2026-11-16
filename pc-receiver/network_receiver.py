@@ -41,6 +41,7 @@ class NetworkReceiver:
         self.last_transit_time = 0.0
         self.estimated_jitter = 0.0
         self.current_latency_ms = 0.0
+        self.min_transit = None
         self.recent_packet_count = 0
         self.connected_client: Optional[Tuple[str, int]] = None
 
@@ -61,6 +62,7 @@ class NetworkReceiver:
         self.packets_lost = 0
         self.last_seq = -1
         self.estimated_jitter = 0.0
+        self.min_transit = None
 
         self._thread = threading.Thread(target=self._receive_loop, daemon=True)
         self._thread.start()
@@ -110,16 +112,25 @@ class NetworkReceiver:
                             self.packets_lost += (diff - 1)
                     self.last_seq = seq
 
-                    # Gecikme ve Jitter hesabı (RFC 3550 yaklaşımı)
+                    # Gecikme ve Jitter hesabı (Saat farkı / Clock Skew filtreli)
                     if client_timestamp > 0:
-                        transit = receive_time_ms - client_timestamp
-                        # Zaman uyumsuzluğu durumunda negatif çıkmaması için alt sınır 0
-                        if transit >= 0:
-                            self.current_latency_ms = transit
+                        raw_transit = receive_time_ms - client_timestamp
+
+                        # Minimum transit takibi: Telefon ve PC sistem saatleri farkını (Clock Skew) eler
+                        if self.min_transit is None or raw_transit < self.min_transit:
+                            self.min_transit = raw_transit
+                        elif self.total_packets_received % 300 == 0:
+                            # Zaman içinde hafif saat kaymasını takip etmek için yavaş adaptasyon
+                            self.min_transit = (self.min_transit * 0.95) + (raw_transit * 0.05)
+
+                        # Gerçek ağ gecikmesi = değişken gecikme + yerel ağ tabanı (~12ms)
+                        calculated_latency = (raw_transit - self.min_transit) + 12.0
+                        self.current_latency_ms = max(5.0, min(calculated_latency, 350.0))
+
                         if self.last_transit_time != 0.0:
-                            d = abs(transit - self.last_transit_time)
+                            d = abs(raw_transit - self.last_transit_time)
                             self.estimated_jitter += (d - self.estimated_jitter) / 16.0
-                        self.last_transit_time = transit
+                        self.last_transit_time = raw_transit
 
                 # Ses motoruna ilet
                 if self.on_audio_data and len(pcm_payload) > 0:

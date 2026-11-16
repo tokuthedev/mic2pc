@@ -56,13 +56,14 @@ class MainActivity : AppCompatActivity() {
         AudioStreamerService.onVuMeterUpdate = { vuLevel ->
             runOnUiThread {
                 binding.pbVuMeter.progress = vuLevel
+                binding.tvVuPercent.text = "$vuLevel%"
             }
         }
 
         AudioStreamerService.onStatsUpdate = { totalPackets, pps ->
             runOnUiThread {
                 val kbps = (pps * 974 * 8) / 1000 // Yaklaşık kilobit/sn
-                binding.tvPacketStats.text = "Gönderilen: $totalPackets | Hız: $pps pkt/s (~$kbps kbps)"
+                binding.tvPacketStats.text = "Paket: $totalPackets | Hız: $pps pkt/s (~$kbps kbps)"
             }
         }
     }
@@ -143,17 +144,21 @@ class MainActivity : AppCompatActivity() {
 
         updateUiState(false)
         binding.pbVuMeter.progress = 0
-        binding.tvPacketStats.text = "Gönderilen Paket: 0 | Bit Hızı: 0 kbps"
+        binding.tvVuPercent.text = "0%"
+        binding.tvPacketStats.text = "Paket: 0 | Hız: 0 pkt/s"
     }
 
     private fun updateUiState(isStreaming: Boolean) {
         if (isStreaming) {
             binding.btnToggleStream.text = getString(R.string.btn_stop)
             binding.btnToggleStream.backgroundTintList =
-                ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent_red))
+                ColorStateList.valueOf(ContextCompat.getColor(this, R.color.m3_error))
+            binding.btnToggleStream.setTextColor(
+                ContextCompat.getColor(this, R.color.m3_on_error)
+            )
 
             binding.tvStatus.text = getString(R.string.status_streaming)
-            binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+            binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.m3_tertiary))
             binding.viewStatusDot.setBackgroundResource(R.drawable.circle_green)
 
             binding.etTargetIp.isEnabled = false
@@ -161,7 +166,19 @@ class MainActivity : AppCompatActivity() {
         } else {
             binding.btnToggleStream.text = getString(R.string.btn_start)
             binding.btnToggleStream.backgroundTintList =
-                ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent_green))
+                ColorStateList.valueOf(ContextCompat.getColor(this, R.color.m3_primary))
+            binding.btnToggleStream.setTextColor(
+                ContextCompat.getColor(this, R.color.m3_on_primary)
+            )
+
+            binding.tvStatus.text = getString(R.string.status_disconnected)
+            binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.m3_error))
+            binding.viewStatusDot.setBackgroundResource(R.drawable.circle_red)
+
+            binding.etTargetIp.isEnabled = true
+            binding.etTargetPort.isEnabled = true
+        }
+    }
 
             binding.tvStatus.text = getString(R.string.status_disconnected)
             binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_red))
