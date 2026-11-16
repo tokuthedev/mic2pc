@@ -1,6 +1,6 @@
 # mic2pc - Still in progress, may not work properly
 
-**mic2pc** is a high-performance, ultra-low-latency virtual microphone system that converts an Android device into a studio-grade PC microphone over local UDP. Designed with a clean **Material Design 3 (Material You)** interface inspired by modern open-source desktop clients (such as LocalSend), it bridges mobile audio hardware directly into Windows audio endpoints with sub-frame processing overhead.
+**mic2pc** is a high-performance, ultra-low-latency virtual microphone system that converts an Android device into a studio-grade PC microphone over local UDP. Designed with a clean **Material Design 3 (Material You)** interface inspired by modern open-source desktop clients, it bridges mobile audio hardware directly into Windows audio endpoints with sub-frame processing overhead.
 
 ---
 
