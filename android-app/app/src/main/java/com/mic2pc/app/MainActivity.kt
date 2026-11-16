@@ -55,6 +55,14 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         setupSettingsControls()
         checkPermissions()
+
+        // Uygulama açılışında arka planda sessizce güncelleme kontrolü yap
+        AppUpdater.checkForUpdate(
+            currentVersionCode = 1,
+            onUpdateFound = { updateInfo ->
+                AppUpdater.showUpdateDialog(this, updateInfo)
+            }
+        )
     }
 
     override fun onResume() {
@@ -176,6 +184,24 @@ class MainActivity : AppCompatActivity() {
         }
         binding.btnThemeAmber.setOnClickListener {
             Toast.makeText(this, "Amber Teması devrede", Toast.LENGTH_SHORT).show()
+        }
+
+        // Otomatik Güncelleme (In-App Auto Update)
+        binding.tvAppVersion.text = "Mevcut Sürüm: v1.0.0"
+        binding.btnCheckUpdate.setOnClickListener {
+            Toast.makeText(this, "Güncellemeler denetleniyor...", Toast.LENGTH_SHORT).show()
+            AppUpdater.checkForUpdate(
+                currentVersionCode = 1,
+                onUpdateFound = { updateInfo ->
+                    AppUpdater.showUpdateDialog(this, updateInfo)
+                },
+                onUpToDate = {
+                    Toast.makeText(this, "mic2pc en güncel sürümde! (v1.0.0)", Toast.LENGTH_SHORT).show()
+                },
+                onError = { err ->
+                    Toast.makeText(this, "Güncelleme denetlenemedi: $err", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 
