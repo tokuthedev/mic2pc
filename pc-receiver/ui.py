@@ -1,4 +1,5 @@
 import os
+import sys
 import socket
 import threading
 import time
@@ -14,7 +15,8 @@ from network_receiver import NetworkReceiver
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# PyInstaller bundle desteği (sys._MEIPASS)
+BASE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 ICON_PATH = os.path.join(BASE_DIR, "icon.png")
 ICO_PATH = os.path.join(BASE_DIR, "icon.ico")
 

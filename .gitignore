@@ -4,6 +4,12 @@ pc-receiver/__pycache__/
 *.pyc
 *.pyo
 
+# PyInstaller / Build Artifacts
+pc-receiver/build/
+pc-receiver/dist/
+*.spec
+*.exe
+
 # Android / Gradle
 android-app/.gradle/
 android-app/build/
