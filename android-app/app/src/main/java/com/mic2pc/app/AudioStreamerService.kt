@@ -31,6 +31,8 @@ class AudioStreamerService : Service() {
         const val ACTION_STOP = "ACTION_STOP"
         const val EXTRA_IP = "EXTRA_IP"
         const val EXTRA_PORT = "EXTRA_PORT"
+        const val EXTRA_SOURCE = "EXTRA_SOURCE"
+        const val EXTRA_GAIN = "EXTRA_GAIN"
         const val CHANNEL_ID = "mic2pc_stream_channel"
         const val NOTIFICATION_ID = 1001
 
@@ -59,7 +61,9 @@ class AudioStreamerService : Service() {
             ACTION_START -> {
                 val ip = intent.getStringExtra(EXTRA_IP) ?: "192.168.1.1"
                 val port = intent.getIntExtra(EXTRA_PORT, 50005)
-                startStreaming(ip, port)
+                val source = intent.getIntExtra(EXTRA_SOURCE, android.media.MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                val gain = intent.getFloatExtra(EXTRA_GAIN, 1.0f)
+                startStreaming(ip, port, source, gain)
             }
             ACTION_STOP -> {
                 stopStreaming()
@@ -68,7 +72,7 @@ class AudioStreamerService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun startStreaming(ip: String, port: Int) {
+    private fun startStreaming(ip: String, port: Int, source: Int, gain: Float) {
         if (isRunning) return
         isRunning = true
 
@@ -90,6 +94,8 @@ class AudioStreamerService : Service() {
                 udpSender = UdpAudioSender(ip, port)
                 audioCapture = AudioCaptureEngine(
                     sampleRate = 48000,
+                    audioSource = source,
+                    gainMultiplier = gain,
                     onAudioChunkReady = { chunk, length ->
                         udpSender?.sendPcmChunk(chunk, length)
                     },

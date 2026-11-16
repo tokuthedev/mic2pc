@@ -6,8 +6,11 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +21,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var prefs: SharedPreferences
+
+    private var selectedSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION
+    private var selectedGain = 1.0f
+    private var keepScreenOn = false
 
     private val requiredPermissions = mutableListOf(
         Manifest.permission.RECORD_AUDIO
@@ -44,7 +51,9 @@ class MainActivity : AppCompatActivity() {
         prefs = getSharedPreferences("mic2pc_prefs", Context.MODE_PRIVATE)
 
         loadSavedSettings()
+        setupNavigation()
         setupListeners()
+        setupSettingsControls()
         checkPermissions()
     }
 
@@ -52,7 +61,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateUiState(AudioStreamerService.isRunning)
 
-        // Servisten gelen VU meter ve İstatistik güncellemelerini UI'a bağla
         AudioStreamerService.onVuMeterUpdate = { vuLevel ->
             runOnUiThread {
                 binding.pbVuMeter.progress = vuLevel
@@ -62,7 +70,7 @@ class MainActivity : AppCompatActivity() {
 
         AudioStreamerService.onStatsUpdate = { totalPackets, pps ->
             runOnUiThread {
-                val kbps = (pps * 974 * 8) / 1000 // Yaklaşık kilobit/sn
+                val kbps = (pps * 974 * 8) / 1000
                 binding.tvPacketStats.text = "Paket: $totalPackets | Hız: $pps pkt/s (~$kbps kbps)"
             }
         }
@@ -70,9 +78,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        // Arka plandayken UI callback'ini kaldırarak bellek sızıntısını önle
         AudioStreamerService.onVuMeterUpdate = null
         AudioStreamerService.onStatsUpdate = null
+    }
+
+    private fun setupNavigation() {
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_stream -> {
+                    binding.layoutStreamTab.visibility = View.VISIBLE
+                    binding.layoutSettingsTab.visibility = View.GONE
+                    true
+                }
+                R.id.nav_settings -> {
+                    binding.layoutStreamTab.visibility = View.GONE
+                    binding.layoutSettingsTab.visibility = View.VISIBLE
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun loadSavedSettings() {
@@ -80,6 +105,12 @@ class MainActivity : AppCompatActivity() {
         val savedPort = prefs.getInt("last_port", 50005)
         binding.etTargetIp.setText(savedIp)
         binding.etTargetPort.setText(savedPort.toString())
+
+        selectedSource = prefs.getInt("audio_source", MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+        selectedGain = prefs.getFloat("audio_gain", 1.0f)
+        keepScreenOn = prefs.getBoolean("keep_screen_on", false)
+
+        applyKeepScreenOn(keepScreenOn)
     }
 
     private fun saveSettings(ip: String, port: Int) {
@@ -87,6 +118,73 @@ class MainActivity : AppCompatActivity() {
             .putString("last_ip", ip)
             .putInt("last_port", port)
             .apply()
+    }
+
+    private fun setupSettingsControls() {
+        // Ses Kaynağı RadioGroup
+        if (selectedSource == MediaRecorder.AudioSource.MIC) {
+            binding.rbSourceRawMic.isChecked = true
+        } else {
+            binding.rbSourceVoiceComm.isChecked = true
+        }
+
+        binding.rgAudioSource.setOnCheckedChangeListener { _, checkedId ->
+            selectedSource = if (checkedId == R.id.rbSourceRawMic) {
+                MediaRecorder.AudioSource.MIC
+            } else {
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION
+            }
+            prefs.edit().putInt("audio_source", selectedSource).apply()
+            Toast.makeText(this, "Ses modu kaydedildi (Yayını yeniden başlatın)", Toast.LENGTH_SHORT).show()
+        }
+
+        // Kazanç Butonları
+        binding.tvGainValue.text = "${selectedGain}x"
+        val gainButtons = listOf(
+            binding.btnGain10 to 1.0f,
+            binding.btnGain15 to 1.5f,
+            binding.btnGain20 to 2.0f,
+            binding.btnGain25 to 2.5f
+        )
+
+        gainButtons.forEach { (btn, gainVal) ->
+            btn.setOnClickListener {
+                selectedGain = gainVal
+                binding.tvGainValue.text = "${selectedGain}x"
+                prefs.edit().putFloat("audio_gain", selectedGain).apply()
+                Toast.makeText(this, "Kazanç ${gainVal}x olarak ayarlandı", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Ekranı Açık Tut Switch
+        binding.switchKeepScreenOn.isChecked = keepScreenOn
+        binding.switchKeepScreenOn.setOnCheckedChangeListener { _, isChecked ->
+            keepScreenOn = isChecked
+            prefs.edit().putBoolean("keep_screen_on", isChecked).apply()
+            applyKeepScreenOn(isChecked)
+        }
+
+        // Tema Butonları
+        binding.btnThemeLavender.setOnClickListener {
+            Toast.makeText(this, "Lavender Teması devrede", Toast.LENGTH_SHORT).show()
+        }
+        binding.btnThemeBlue.setOnClickListener {
+            Toast.makeText(this, "Mavi Safir Teması devrede", Toast.LENGTH_SHORT).show()
+        }
+        binding.btnThemeGreen.setOnClickListener {
+            Toast.makeText(this, "Zümrüt Yeşil Teması devrede", Toast.LENGTH_SHORT).show()
+        }
+        binding.btnThemeAmber.setOnClickListener {
+            Toast.makeText(this, "Amber Teması devrede", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun applyKeepScreenOn(enable: Boolean) {
+        if (enable) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     private fun checkPermissions() {
@@ -125,6 +223,8 @@ class MainActivity : AppCompatActivity() {
             action = AudioStreamerService.ACTION_START
             putExtra(AudioStreamerService.EXTRA_IP, ip)
             putExtra(AudioStreamerService.EXTRA_PORT, port)
+            putExtra(AudioStreamerService.EXTRA_SOURCE, selectedSource)
+            putExtra(AudioStreamerService.EXTRA_GAIN, selectedGain)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -173,15 +273,6 @@ class MainActivity : AppCompatActivity() {
 
             binding.tvStatus.text = getString(R.string.status_disconnected)
             binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.m3_error))
-            binding.viewStatusDot.setBackgroundResource(R.drawable.circle_red)
-
-            binding.etTargetIp.isEnabled = true
-            binding.etTargetPort.isEnabled = true
-        }
-    }
-
-            binding.tvStatus.text = getString(R.string.status_disconnected)
-            binding.tvStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_red))
             binding.viewStatusDot.setBackgroundResource(R.drawable.circle_red)
 
             binding.etTargetIp.isEnabled = true

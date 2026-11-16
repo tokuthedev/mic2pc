@@ -9,6 +9,8 @@ import kotlin.math.max
 
 class AudioCaptureEngine(
     private val sampleRate: Int = 48000,
+    private val audioSource: Int = MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+    private val gainMultiplier: Float = 1.0f,
     private val onAudioChunkReady: (ShortArray, Int) -> Unit,
     private val onVuLevelChanged: (Int) -> Unit
 ) {
@@ -31,10 +33,9 @@ class AudioCaptureEngine(
 
         val bufferSize = max(minBufSize, frameSize * 4)
 
-        // Düşük gecikme ve oyun/Discord iletişimi için VOICE_COMMUNICATION kaynağı
-        // (Donanım seviyesinde eko ve arka plan gürültüsü filtresini devreye sokar)
+        // Seçilen kaynak ile başlatmayı dene
         audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            audioSource,
             sampleRate,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
@@ -42,7 +43,7 @@ class AudioCaptureEngine(
         )
 
         if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-            // Eğer VOICE_COMMUNICATION başlatılamazsa standart MIC kaynağına geri dön
+            // Başlatılamazsa standart MIC kaynağına geri dön
             audioRecord = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
                 sampleRate,
@@ -62,9 +63,17 @@ class AudioCaptureEngine(
             while (isRecording) {
                 val readSamples = audioRecord?.read(audioBuffer, 0, frameSize) ?: -1
                 if (readSamples > 0) {
+                    // Kazanç (Gain) Çarpanı Uygula
+                    if (gainMultiplier != 1.0f) {
+                        for (i in 0 until readSamples) {
+                            val amplified = (audioBuffer[i] * gainMultiplier).toInt()
+                            audioBuffer[i] = amplified.coerceIn(-32768, 32767).toShort()
+                        }
+                    }
+
                     onAudioChunkReady(audioBuffer, readSamples)
 
-                    // Her 3 pakette bir (~30ms) VU meter hesapla (UI'ı kasmamak için)
+                    // Her 3 pakette bir (~30ms) VU meter hesapla
                     vuCounter++
                     if (vuCounter >= 3) {
                         vuCounter = 0
@@ -73,14 +82,13 @@ class AudioCaptureEngine(
                             val amp = abs(audioBuffer[i].toInt())
                             if (amp > maxAmp) maxAmp = amp
                         }
-                        // 0 - 32767 aralığını 0 - 100 ölçeğine eşle
                         val percentage = ((maxAmp / 32767.0) * 100).toInt().coerceIn(0, 100)
                         onVuLevelChanged(percentage)
                     }
                 }
             }
         }, "MicCaptureThread").apply {
-            priority = Thread.MAX_PRIORITY // Ses gecikmesi olmaması için en yüksek öncelik
+            priority = Thread.MAX_PRIORITY
             start()
         }
     }

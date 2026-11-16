@@ -3,7 +3,8 @@ import sys
 import socket
 import threading
 import time
-from typing import List, Optional, Tuple
+import subprocess
+from typing import List, Optional, Tuple, Dict
 import customtkinter as ctk
 import pystray
 from PIL import Image
@@ -11,37 +12,68 @@ from PIL import Image
 from audio_engine import AudioEngine
 from network_receiver import NetworkReceiver
 
-# Material Design 3 Yapılandırması
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 BASE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 ICON_PATH = os.path.join(BASE_DIR, "icon.png")
 ICO_PATH = os.path.join(BASE_DIR, "icon.ico")
-
 FONT_FAMILY = "Segoe UI"
 
-# Material Design 3 Dark Renk Paleti
+# Material Design 3 Renk Temaları
+THEMES: Dict[str, Dict[str, str]] = {
+    "Lavender": {
+        "primary": "#D0BCFF",
+        "on_primary": "#381E72",
+        "primary_container": "#4F378B",
+        "on_primary_container": "#EADDFF",
+        "accent": "#7ADC9A",
+    },
+    "Sapphire": {
+        "primary": "#A8C7FA",
+        "on_primary": "#042B6B",
+        "primary_container": "#0842A0",
+        "on_primary_container": "#D3E3FD",
+        "accent": "#6DD58C",
+    },
+    "Mint": {
+        "primary": "#6DD58C",
+        "on_primary": "#003915",
+        "primary_container": "#0A5323",
+        "on_primary_container": "#C4EED0",
+        "accent": "#A8C7FA",
+    },
+    "Sunset": {
+        "primary": "#FFB787",
+        "on_primary": "#4F2500",
+        "primary_container": "#703800",
+        "on_primary_container": "#FFDCC5",
+        "accent": "#6DD58C",
+    },
+    "Rose": {
+        "primary": "#FFB1C8",
+        "on_primary": "#5E1133",
+        "primary_container": "#7E2648",
+        "on_primary_container": "#FFD9E2",
+        "accent": "#A8C7FA",
+    },
+}
+
+# Standart M3 Yüzey Renkleri
 M3_SURFACE = "#141218"
+M3_SURFACE_CONTAINER_LOW = "#1D1B20"
 M3_SURFACE_CONTAINER = "#211F26"
 M3_SURFACE_CONTAINER_HIGH = "#2B2930"
 M3_SURFACE_CONTAINER_HIGHEST = "#36343B"
-M3_PRIMARY = "#D0BCFF"
-M3_ON_PRIMARY = "#381E72"
-M3_PRIMARY_CONTAINER = "#4F378B"
-M3_ON_PRIMARY_CONTAINER = "#EADDFF"
 M3_SECONDARY_CONTAINER = "#4A4458"
-M3_TERTIARY = "#7ADC9A"
-M3_ON_TERTIARY = "#003919"
-M3_ERROR = "#F2B8B5"
-M3_ON_ERROR = "#601410"
 M3_OUTLINE = "#49454F"
 M3_ON_SURFACE = "#E6E0E9"
 M3_ON_SURFACE_VARIANT = "#CAC4D0"
+M3_ERROR = "#F2B8B5"
+M3_ON_ERROR = "#601410"
 
 
 def get_local_ip_addresses() -> List[str]:
-    """Bilgisayarın yerel ağdaki IP adreslerini listeler."""
     ips = []
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -67,9 +99,9 @@ class Mic2PcApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("mic2pc • Material 3 Virtual Mic")
-        self.geometry("640x780")
-        self.minsize(580, 720)
+        self.title("mic2pc • Material 3 Virtual Microphone")
+        self.geometry("860x680")
+        self.minsize(780, 620)
         self.configure(fg_color=M3_SURFACE)
 
         if os.path.exists(ICO_PATH):
@@ -78,7 +110,11 @@ class Mic2PcApp(ctk.CTk):
             except Exception:
                 pass
 
-        # Temel bileşenler
+        # Aktif Tema
+        self.current_theme_name = "Lavender"
+        self.theme = THEMES[self.current_theme_name]
+
+        # Ses ve Ağ Motoru
         self.audio_engine = AudioEngine(
             sample_rate=48000,
             target_buffer_ms=25,
@@ -94,113 +130,164 @@ class Mic2PcApp(ctk.CTk):
         self.selected_device_index: Optional[int] = None
         self.is_active = False
 
-        # GUI'yi oluştur
-        self._build_ui()
+        # UI Navigasyon
+        self.active_tab = "stream"
+        self.nav_buttons: Dict[str, ctk.CTkButton] = {}
+        self.tab_frames: Dict[str, ctk.CTkFrame] = {}
+
+        self._build_main_layout()
 
         # Sistem tepsisi entegrasyonu
         self.tray_icon: Optional[pystray.Icon] = None
         self.protocol("WM_DELETE_WINDOW", self._on_close_button)
 
-        # Cihaz listesini doldur
         self._refresh_audio_devices()
 
-    def _build_ui(self):
-        # 1. HEADER (M3 Card: Logo + Başlık + Durum Hapı)
-        self.header_card = ctk.CTkFrame(
+    def _build_main_layout(self):
+        # Ana Konteyner: Sol NavigationRail, Sağ İçerik Alanı
+        self.grid_columnconfigure(0, weight=0)  # Sol Nav: Sabit genişlik
+        self.grid_columnconfigure(1, weight=1)  # Sağ İçerik: Esnek
+        self.grid_rowconfigure(0, weight=1)
+
+        # ---------------- SOL: M3 NAVIGATION RAIL ----------------
+        self.nav_rail = ctk.CTkFrame(
             self,
-            corner_radius=24,
-            fg_color=M3_SURFACE_CONTAINER,
-            border_width=1,
-            border_color=M3_OUTLINE
+            width=200,
+            corner_radius=0,
+            fg_color=M3_SURFACE_CONTAINER_LOW,
+            border_width=0,
         )
-        self.header_card.pack(fill="x", padx=18, pady=(16, 12))
+        self.nav_rail.grid(row=0, column=0, sticky="nsew")
+        self.nav_rail.grid_propagate(False)
 
-        header_layout = ctk.CTkFrame(self.header_card, fg_color="transparent")
-        header_layout.pack(fill="x", padx=18, pady=14)
+        # Üst Başlık & Logo
+        logo_frame = ctk.CTkFrame(self.nav_rail, fg_color="transparent")
+        logo_frame.pack(fill="x", padx=16, pady=(20, 24))
 
-        # Logo
         if os.path.exists(ICON_PATH):
             try:
-                pil_logo = Image.open(ICON_PATH).resize((46, 46), Image.Resampling.LANCZOS)
-                self.logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(46, 46))
-                self.logo_label = ctk.CTkLabel(header_layout, text="", image=self.logo_img)
-                self.logo_label.pack(side="left", padx=(0, 12))
+                pil_logo = Image.open(ICON_PATH).resize((38, 38), Image.Resampling.LANCZOS)
+                self.logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(38, 38))
+                lbl_logo = ctk.CTkLabel(logo_frame, text="", image=self.logo_img)
+                lbl_logo.pack(side="left", padx=(0, 10))
             except Exception:
                 pass
 
-        title_container = ctk.CTkFrame(header_layout, fg_color="transparent")
-        title_container.pack(side="left", fill="both", expand=True)
-
-        app_title = ctk.CTkLabel(
-            title_container,
+        lbl_app_name = ctk.CTkLabel(
+            logo_frame,
             text="mic2pc",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=21, weight="bold"),
+            font=ctk.CTkFont(family=FONT_FAMILY, size=20, weight="bold"),
             text_color=M3_ON_SURFACE,
-            anchor="w"
         )
-        app_title.pack(anchor="w")
+        lbl_app_name.pack(side="left")
 
-        sub_title = ctk.CTkLabel(
-            title_container,
-            text="Material Design 3 • 48 kHz Low-Latency Mic",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
-            text_color=M3_ON_SURFACE_VARIANT,
-            anchor="w"
-        )
-        sub_title.pack(anchor="w")
+        # Navigasyon Butonları (M3 Pill Tabs)
+        self._create_nav_button("stream", "🎙️  Yayın", "stream")
+        self._create_nav_button("stats", "📊  İstatistikler", "stats")
+        self._create_nav_button("settings", "⚙️  Ayarlar", "settings")
 
-        # Üst Sağ: M3 Canlı Durum Rozeti (Pill Badge)
-        self.status_pill = ctk.CTkFrame(
-            header_layout,
-            corner_radius=20,
+        # Alt Kısım: Durum Hapı
+        self.nav_status_frame = ctk.CTkFrame(
+            self.nav_rail,
+            corner_radius=16,
             fg_color=M3_SURFACE_CONTAINER_HIGH,
             border_width=1,
-            border_color=M3_OUTLINE
+            border_color=M3_OUTLINE,
         )
-        self.status_pill.pack(side="right", padx=(8, 0))
+        self.nav_status_frame.pack(side="bottom", fill="x", padx=14, pady=18)
 
-        self.status_dot = ctk.CTkLabel(
-            self.status_pill,
+        self.nav_status_dot = ctk.CTkLabel(
+            self.nav_status_frame,
             text="●",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=13),
-            text_color=M3_ERROR
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
+            text_color=M3_ERROR,
         )
-        self.status_dot.pack(side="left", padx=(10, 4), pady=5)
+        self.nav_status_dot.pack(side="left", padx=(10, 4), pady=6)
 
-        self.status_text = ctk.CTkLabel(
-            self.status_pill,
-            text="DURDURULDU",
+        self.nav_status_lbl = ctk.CTkLabel(
+            self.nav_status_frame,
+            text="Durduruldu",
             font=ctk.CTkFont(family=FONT_FAMILY, size=11, weight="bold"),
-            text_color=M3_ON_SURFACE
+            text_color=M3_ON_SURFACE,
         )
-        self.status_text.pack(side="left", padx=(0, 10), pady=5)
+        self.nav_status_lbl.pack(side="left", padx=(0, 10), pady=6)
 
-        # 2. IP ADRESİ KARTI (M3 Surface Container)
-        self.ip_card = ctk.CTkFrame(
-            self,
+        # ---------------- SAĞ: İÇERİK ALANI ----------------
+        self.content_area = ctk.CTkFrame(self, fg_color=M3_SURFACE, corner_radius=0)
+        self.content_area.grid(row=0, column=1, sticky="nsew", padx=20, pady=16)
+
+        # Sekmeleri Oluştur
+        self._build_stream_tab()
+        self._build_stats_tab()
+        self._build_settings_tab()
+
+        # Varsayılan sekmeyi aç
+        self._select_tab("stream")
+
+    def _create_nav_button(self, tab_id: str, label: str, icon_symbol: str):
+        btn = ctk.CTkButton(
+            self.nav_rail,
+            text=label,
+            height=46,
+            corner_radius=23,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=13, weight="bold"),
+            anchor="w",
+            fg_color="transparent",
+            hover_color=M3_SURFACE_CONTAINER_HIGH,
+            text_color=M3_ON_SURFACE_VARIANT,
+            command=lambda: self._select_tab(tab_id),
+        )
+        btn.pack(fill="x", padx=12, pady=4)
+        self.nav_buttons[tab_id] = btn
+
+    def _select_tab(self, tab_id: str):
+        self.active_tab = tab_id
+        for tid, btn in self.nav_buttons.items():
+            if tid == tab_id:
+                btn.configure(
+                    fg_color=self.theme["primary_container"],
+                    text_color=self.theme["on_primary_container"],
+                )
+            else:
+                btn.configure(
+                    fg_color="transparent",
+                    text_color=M3_ON_SURFACE_VARIANT,
+                )
+
+        for tid, frame in self.tab_frames.items():
+            if tid == tab_id:
+                frame.pack(fill="both", expand=True)
+            else:
+                frame.pack_forget()
+
+    # ================= 1. YAYIN SEKMESİ (STREAM) =================
+    def _build_stream_tab(self):
+        tab = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        self.tab_frames["stream"] = tab
+
+        # IP Kartı
+        ip_card = ctk.CTkFrame(
+            tab,
             corner_radius=20,
             fg_color=M3_SURFACE_CONTAINER,
             border_width=1,
-            border_color=M3_OUTLINE
+            border_color=M3_OUTLINE,
         )
-        self.ip_card.pack(fill="x", padx=18, pady=(0, 12))
+        ip_card.pack(fill="x", pady=(0, 12))
 
         local_ips = get_local_ip_addresses()
         self.primary_ip = local_ips[0] if local_ips else "127.0.0.1"
 
-        ip_content = ctk.CTkFrame(self.ip_card, fg_color="transparent")
+        ip_content = ctk.CTkFrame(ip_card, fg_color="transparent")
         ip_content.pack(fill="x", padx=18, pady=12)
 
-        ip_icon_lbl = ctk.CTkLabel(ip_content, text="📡", font=ctk.CTkFont(family=FONT_FAMILY, size=16))
-        ip_icon_lbl.pack(side="left", padx=(0, 8))
-
-        ip_desc = ctk.CTkLabel(
+        ctk.CTkLabel(ip_content, text="📡", font=ctk.CTkFont(family=FONT_FAMILY, size=18)).pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(
             ip_content,
-            text="Telefona bu IP'yi girin: ",
+            text="Telefondan Bağlanılacak IP: ",
             font=ctk.CTkFont(family=FONT_FAMILY, size=13),
-            text_color=M3_ON_SURFACE_VARIANT
-        )
-        ip_desc.pack(side="left")
+            text_color=M3_ON_SURFACE_VARIANT,
+        ).pack(side="left")
 
         self.ip_badge = ctk.CTkLabel(
             ip_content,
@@ -208,7 +295,7 @@ class Mic2PcApp(ctk.CTk):
             font=ctk.CTkFont(family=FONT_FAMILY, size=13, weight="bold"),
             fg_color=M3_SURFACE_CONTAINER_HIGHEST,
             corner_radius=10,
-            text_color=M3_PRIMARY
+            text_color=self.theme["primary"],
         )
         self.ip_badge.pack(side="left", padx=(0, 10))
 
@@ -219,83 +306,79 @@ class Mic2PcApp(ctk.CTk):
             height=30,
             corner_radius=15,
             font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
-            fg_color=M3_PRIMARY_CONTAINER,
-            hover_color=M3_SECONDARY_CONTAINER,
-            text_color=M3_ON_PRIMARY_CONTAINER,
-            command=self._copy_ip
+            fg_color=self.theme["primary_container"],
+            text_color=self.theme["on_primary_container"],
+            command=self._copy_ip,
         )
         self.copy_btn.pack(side="right")
 
-        # 3. METRİKLER (M3 Cards: Gecikme, Jitter, Paket Kaybı, Hız)
-        self.metrics_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.metrics_container.pack(fill="x", padx=18, pady=(0, 12))
-        self.metrics_container.columnconfigure((0, 1, 2, 3), weight=1, uniform="metric")
+        # Hızlı Metrik Kartları
+        metrics_container = ctk.CTkFrame(tab, fg_color="transparent")
+        metrics_container.pack(fill="x", pady=(0, 12))
+        metrics_container.columnconfigure((0, 1, 2, 3), weight=1, uniform="metric")
 
-        self.metric_latency = self._create_metric_card(self.metrics_container, 0, "Gecikme (Ping)", "0 ms", M3_PRIMARY)
-        self.metric_jitter = self._create_metric_card(self.metrics_container, 1, "Jitter", "0.0 ms", M3_SECONDARY_CONTAINER)
-        self.metric_loss = self._create_metric_card(self.metrics_container, 2, "Paket Kaybı", "%0.0", M3_TERTIARY)
-        self.metric_pps = self._create_metric_card(self.metrics_container, 3, "Paket/sn", "0 pps", M3_ON_SURFACE)
+        self.metric_latency = self._create_metric_box(metrics_container, 0, "Gecikme (Ping)", "0 ms", self.theme["primary"])
+        self.metric_jitter = self._create_metric_box(metrics_container, 1, "Jitter", "0.0 ms", self.theme["accent"])
+        self.metric_loss = self._create_metric_box(metrics_container, 2, "Paket Kaybı", "%0.0", self.theme["accent"])
+        self.metric_pps = self._create_metric_box(metrics_container, 3, "Paket/sn", "0 pps", M3_ON_SURFACE)
 
-        # 4. CANLI VU METER (M3 Linear Indicator)
-        self.vu_card = ctk.CTkFrame(
-            self,
+        # Canlı VU Meter Kartı
+        vu_card = ctk.CTkFrame(
+            tab,
             corner_radius=20,
             fg_color=M3_SURFACE_CONTAINER,
             border_width=1,
-            border_color=M3_OUTLINE
+            border_color=M3_OUTLINE,
         )
-        self.vu_card.pack(fill="x", padx=18, pady=(0, 12))
+        vu_card.pack(fill="x", pady=(0, 14))
 
-        vu_header = ctk.CTkFrame(self.vu_card, fg_color="transparent")
+        vu_header = ctk.CTkFrame(vu_card, fg_color="transparent")
         vu_header.pack(fill="x", padx=18, pady=(12, 6))
 
-        vu_title = ctk.CTkLabel(
+        ctk.CTkLabel(
             vu_header,
-            text="Mikrofon Ses Seviyesi",
+            text="Canlı Mikrofon Seviyesi",
             font=ctk.CTkFont(family=FONT_FAMILY, size=13, weight="bold"),
-            text_color=M3_ON_SURFACE
-        )
-        vu_title.pack(side="left")
+            text_color=M3_ON_SURFACE,
+        ).pack(side="left")
 
         self.vu_percent_label = ctk.CTkLabel(
             vu_header,
             text="0%",
             font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
-            text_color=M3_ON_SURFACE_VARIANT
+            text_color=M3_ON_SURFACE_VARIANT,
         )
         self.vu_percent_label.pack(side="right")
 
         self.vu_progress = ctk.CTkProgressBar(
-            self.vu_card,
+            vu_card,
             height=14,
             corner_radius=7,
             fg_color=M3_SURFACE_CONTAINER_HIGHEST,
-            progress_color=M3_TERTIARY
+            progress_color=self.theme["accent"],
         )
         self.vu_progress.pack(fill="x", padx=18, pady=(0, 14))
         self.vu_progress.set(0.0)
 
-        # 5. AYARLAR KARTI (M3 Surface Container)
-        self.settings_card = ctk.CTkFrame(
-            self,
-            corner_radius=24,
+        # Hızlı Ayar Seçici (Çıkış Aygıtı)
+        quick_card = ctk.CTkFrame(
+            tab,
+            corner_radius=20,
             fg_color=M3_SURFACE_CONTAINER,
             border_width=1,
-            border_color=M3_OUTLINE
+            border_color=M3_OUTLINE,
         )
-        self.settings_card.pack(fill="both", expand=True, padx=18, pady=(0, 12))
+        quick_card.pack(fill="x", pady=(0, 16))
 
-        # Aygıt Seçimi
-        dev_label = ctk.CTkLabel(
-            self.settings_card,
-            text="Sanal Ses Çıkışı (Discord / Oyun için VB-CABLE):",
+        ctk.CTkLabel(
+            quick_card,
+            text="Aktif Ses Çıkışı (Discord / Oyunlar için VB-CABLE):",
             font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
-            text_color=M3_ON_SURFACE
-        )
-        dev_label.pack(anchor="w", padx=18, pady=(14, 4))
+            text_color=M3_ON_SURFACE,
+        ).pack(anchor="w", padx=18, pady=(12, 4))
 
         self.dev_combo = ctk.CTkComboBox(
-            self.settings_card,
+            quick_card,
             height=36,
             corner_radius=12,
             font=ctk.CTkFont(family=FONT_FAMILY, size=12),
@@ -303,131 +386,326 @@ class Mic2PcApp(ctk.CTk):
             fg_color=M3_SURFACE_CONTAINER_HIGHEST,
             border_color=M3_OUTLINE,
             button_color=M3_SURFACE_CONTAINER_HIGH,
-            button_hover_color=M3_SECONDARY_CONTAINER,
             values=["Yükleniyor..."],
-            command=self._on_device_selected
+            command=self._on_device_selected,
         )
-        self.dev_combo.pack(fill="x", padx=18, pady=(0, 12))
+        self.dev_combo.pack(fill="x", padx=18, pady=(0, 14))
 
-        # Port & Jitter Buffer Yan Yana
-        row_settings = ctk.CTkFrame(self.settings_card, fg_color="transparent")
-        row_settings.pack(fill="x", padx=18, pady=(0, 14))
-        row_settings.columnconfigure(0, weight=1)
-        row_settings.columnconfigure(1, weight=2)
-
-        # Port
-        port_box = ctk.CTkFrame(row_settings, fg_color="transparent")
-        port_box.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
-
-        port_title = ctk.CTkLabel(
-            port_box,
-            text="UDP Dinleme Portu:",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
-            text_color=M3_ON_SURFACE
-        )
-        port_title.pack(anchor="w", pady=(0, 4))
-
-        self.port_entry = ctk.CTkEntry(
-            port_box,
-            height=36,
-            corner_radius=12,
-            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
-            fg_color=M3_SURFACE_CONTAINER_HIGHEST,
-            border_color=M3_OUTLINE
-        )
-        self.port_entry.insert(0, "50005")
-        self.port_entry.pack(fill="x")
-
-        # Jitter Slider
-        jitter_box = ctk.CTkFrame(row_settings, fg_color="transparent")
-        jitter_box.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
-
-        self.jitter_label = ctk.CTkLabel(
-            jitter_box,
-            text="Jitter Buffer: 25 ms (İdeal: 20-35ms)",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
-            text_color=M3_ON_SURFACE
-        )
-        self.jitter_label.pack(anchor="w", pady=(0, 8))
-
-        self.jitter_slider = ctk.CTkSlider(
-            jitter_box,
-            from_=10,
-            to=100,
-            number_of_steps=18,
-            progress_color=M3_PRIMARY,
-            button_color=M3_PRIMARY,
-            button_hover_color=M3_ON_PRIMARY_CONTAINER,
-            command=self._on_jitter_slider_change
-        )
-        self.jitter_slider.set(25)
-        self.jitter_slider.pack(fill="x", pady=(2, 0))
-
-        # 6. M3 ACTION BUTTONS (Filled Pill Button)
-        self.action_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.action_frame.pack(fill="x", padx=18, pady=(4, 18))
-
+        # Alt Büyük Başlat/Durdur Butonu
         self.toggle_button = ctk.CTkButton(
-            self.action_frame,
+            tab,
             text="▶  Hizmeti Başlat",
-            font=ctk.CTkFont(family=FONT_FAMILY, size=15, weight="bold"),
-            height=52,
-            corner_radius=26,
-            fg_color=M3_PRIMARY,
-            hover_color=M3_ON_PRIMARY_CONTAINER,
-            text_color=M3_ON_PRIMARY,
-            command=self._toggle_service
+            font=ctk.CTkFont(family=FONT_FAMILY, size=16, weight="bold"),
+            height=54,
+            corner_radius=27,
+            fg_color=self.theme["primary"],
+            text_color=self.theme["on_primary"],
+            hover_color=self.theme["primary_container"],
+            command=self._toggle_service,
         )
-        self.toggle_button.pack(side="left", expand=True, fill="x", padx=(0, 10))
+        self.toggle_button.pack(fill="x", pady=(4, 0))
 
-        self.tray_button = ctk.CTkButton(
-            self.action_frame,
-            text="Tepsiye Küçült",
-            width=135,
-            height=52,
-            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
-            corner_radius=26,
-            fg_color=M3_SURFACE_CONTAINER_HIGH,
-            hover_color=M3_SECONDARY_CONTAINER,
-            text_color=M3_ON_SURFACE,
-            border_width=1,
-            border_color=M3_OUTLINE,
-            command=self._minimize_to_tray
-        )
-        self.tray_button.pack(side="right")
-
-    def _create_metric_card(self, parent, col, title, initial_val, accent_color):
+    def _create_metric_box(self, parent, col, title, initial_val, accent_color):
         card = ctk.CTkFrame(
             parent,
             corner_radius=18,
             fg_color=M3_SURFACE_CONTAINER,
             border_width=1,
-            border_color=M3_OUTLINE
+            border_color=M3_OUTLINE,
         )
         card.grid(row=0, column=col, padx=4, sticky="nsew")
 
-        lbl_t = ctk.CTkLabel(
+        ctk.CTkLabel(
             card,
             text=title,
             font=ctk.CTkFont(family=FONT_FAMILY, size=10),
-            text_color=M3_ON_SURFACE_VARIANT
-        )
-        lbl_t.pack(pady=(10, 0))
+            text_color=M3_ON_SURFACE_VARIANT,
+        ).pack(pady=(10, 0))
 
         lbl_v = ctk.CTkLabel(
             card,
             text=initial_val,
             font=ctk.CTkFont(family=FONT_FAMILY, size=15, weight="bold"),
-            text_color=accent_color
+            text_color=accent_color,
         )
         lbl_v.pack(pady=(2, 10))
         return lbl_v
 
+    # ================= 2. İSTATİSTİKLER SEKMESİ (STATS) =================
+    def _build_stats_tab(self):
+        tab = ctk.CTkFrame(self.content_area, fg_color="transparent")
+        self.tab_frames["stats"] = tab
+
+        ctk.CTkLabel(
+            tab,
+            text="Ağ ve Ses Tanılama",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=18, weight="bold"),
+            text_color=M3_ON_SURFACE,
+        ).pack(anchor="w", pady=(0, 12))
+
+        # Detaylar Kartı
+        stats_card = ctk.CTkFrame(
+            tab,
+            corner_radius=20,
+            fg_color=M3_SURFACE_CONTAINER,
+            border_width=1,
+            border_color=M3_OUTLINE,
+        )
+        stats_card.pack(fill="both", expand=True, pady=(0, 12))
+
+        content = ctk.CTkFrame(stats_card, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=20, pady=16)
+
+        self.diag_labels: Dict[str, ctk.CTkLabel] = {}
+        items = [
+            ("client", "Bağlı Mobil Cihaz:", "Bağlantı bekleniyor..."),
+            ("latency", "Ortalama Ağ Gecikmesi:", "0 ms"),
+            ("jitter", "Jitter Dalgalanması:", "0.0 ms"),
+            ("loss", "Kayıp Paket Oranı:", "%0.0"),
+            ("packets", "Toplam Alınan Paket:", "0"),
+            ("rate", "Anlık Akış Hızı:", "0 pps (~0 kbps)"),
+            ("buffer", "Jitter Buffer Doluluğu:", "25 ms (Stabil)"),
+            ("gain", "Aktif Kazanç (Gain):", "1.0x (Varsayılan)"),
+        ]
+
+        for i, (key, label_text, default_val) in enumerate(items):
+            row = ctk.CTkFrame(content, fg_color="transparent")
+            row.pack(fill="x", pady=6)
+
+            ctk.CTkLabel(
+                row,
+                text=label_text,
+                font=ctk.CTkFont(family=FONT_FAMILY, size=13),
+                text_color=M3_ON_SURFACE_VARIANT,
+            ).pack(side="left")
+
+            val_lbl = ctk.CTkLabel(
+                row,
+                text=default_val,
+                font=ctk.CTkFont(family=FONT_FAMILY, size=13, weight="bold"),
+                text_color=M3_ON_SURFACE,
+            )
+            val_lbl.pack(side="right")
+            self.diag_labels[key] = val_lbl
+
+    # ================= 3. AYARLAR SEKMESİ (SETTINGS) =================
+    def _build_settings_tab(self):
+        tab = ctk.CTkScrollableFrame(
+            self.content_area,
+            fg_color="transparent",
+            corner_radius=0,
+        )
+        self.tab_frames["settings"] = tab
+
+        ctk.CTkLabel(
+            tab,
+            text="Uygulama ve Ses Ayarları",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=18, weight="bold"),
+            text_color=M3_ON_SURFACE,
+        ).pack(anchor="w", pady=(0, 14))
+
+        # 1. TEMA VE RENK PALETİ
+        theme_card = self._create_settings_card(tab, "🎨  Material 3 Renk Teması")
+
+        theme_btn_row = ctk.CTkFrame(theme_card, fg_color="transparent")
+        theme_btn_row.pack(fill="x", padx=18, pady=(4, 16))
+
+        for tname, tcolors in THEMES.items():
+            btn = ctk.CTkButton(
+                theme_btn_row,
+                text=tname,
+                width=80,
+                height=34,
+                corner_radius=17,
+                font=ctk.CTkFont(family=FONT_FAMILY, size=11, weight="bold"),
+                fg_color=tcolors["primary"],
+                text_color=tcolors["on_primary"],
+                hover_color=tcolors["primary_container"],
+                command=lambda n=tname: self._apply_theme(n),
+            )
+            btn.pack(side="left", padx=4)
+
+        # 2. MİKROFON KAZANCI (GAIN BOOSTER)
+        gain_card = self._create_settings_card(tab, "🔊  Mikrofon Kazancı (Gain Booster)")
+
+        self.gain_val_lbl = ctk.CTkLabel(
+            gain_card,
+            text="Kazanç: 1.0x (Normal) — Sesi az giden telefonlar için artırın",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
+            text_color=M3_ON_SURFACE_VARIANT,
+        )
+        self.gain_val_lbl.pack(anchor="w", padx=18, pady=(4, 6))
+
+        self.gain_slider = ctk.CTkSlider(
+            gain_card,
+            from_=0.5,
+            to=3.0,
+            number_of_steps=25,
+            progress_color=self.theme["primary"],
+            button_color=self.theme["primary"],
+            command=self._on_gain_slider_change,
+        )
+        self.gain_slider.set(1.0)
+        self.gain_slider.pack(fill="x", padx=18, pady=(0, 16))
+
+        # 3. JITTER BUFFER VE UDP PORT
+        net_card = self._create_settings_card(tab, "🌐  Ağ ve Gecikme Ayarları")
+
+        self.jitter_val_lbl = ctk.CTkLabel(
+            net_card,
+            text="Jitter Buffer: 25 ms (İdeal: 20-35ms)",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
+            text_color=M3_ON_SURFACE_VARIANT,
+        )
+        self.jitter_val_lbl.pack(anchor="w", padx=18, pady=(4, 6))
+
+        self.jitter_slider = ctk.CTkSlider(
+            net_card,
+            from_=10,
+            to=100,
+            number_of_steps=18,
+            progress_color=self.theme["primary"],
+            button_color=self.theme["primary"],
+            command=self._on_jitter_slider_change,
+        )
+        self.jitter_slider.set(25)
+        self.jitter_slider.pack(fill="x", padx=18, pady=(0, 14))
+
+        # UDP Port Alanı
+        port_row = ctk.CTkFrame(net_card, fg_color="transparent")
+        port_row.pack(fill="x", padx=18, pady=(0, 16))
+
+        ctk.CTkLabel(
+            port_row,
+            text="UDP Dinleme Portu:",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
+            text_color=M3_ON_SURFACE,
+        ).pack(side="left", padx=(0, 12))
+
+        self.port_entry = ctk.CTkEntry(
+            port_row,
+            width=100,
+            height=32,
+            corner_radius=10,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
+            fg_color=M3_SURFACE_CONTAINER_HIGHEST,
+            border_color=M3_OUTLINE,
+        )
+        self.port_entry.insert(0, "50005")
+        self.port_entry.pack(side="left")
+
+        # 4. GÜVENLİK DUVARI VE ARAÇLAR
+        tools_card = self._create_settings_card(tab, "🛡️  Sistem İzinleri ve Güvenlik Duvarı")
+
+        ctk.CTkLabel(
+            tools_card,
+            text="Windows'un her açılışta izin sormasını kalıcı olarak engellemek için tek tıkla kural ekleyin.",
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12),
+            text_color=M3_ON_SURFACE_VARIANT,
+        ).pack(anchor="w", padx=18, pady=(4, 10))
+
+        firewall_btn = ctk.CTkButton(
+            tools_card,
+            text="🛡️  Güvenlik Duvarına Kalıcı İzin Ekle",
+            height=36,
+            corner_radius=18,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
+            fg_color=M3_SURFACE_CONTAINER_HIGHEST,
+            hover_color=M3_SECONDARY_CONTAINER,
+            text_color=M3_ON_SURFACE,
+            border_width=1,
+            border_color=M3_OUTLINE,
+            command=self._run_firewall_fix,
+        )
+        firewall_btn.pack(anchor="w", padx=18, pady=(0, 16))
+
+    def _create_settings_card(self, parent, title: str) -> ctk.CTkFrame:
+        card = ctk.CTkFrame(
+            parent,
+            corner_radius=20,
+            fg_color=M3_SURFACE_CONTAINER,
+            border_width=1,
+            border_color=M3_OUTLINE,
+        )
+        card.pack(fill="x", pady=(0, 12))
+
+        ctk.CTkLabel(
+            card,
+            text=title,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=14, weight="bold"),
+            text_color=M3_ON_SURFACE,
+        ).pack(anchor="w", padx=18, pady=(14, 4))
+        return card
+
+    def _apply_theme(self, theme_name: str):
+        if theme_name not in THEMES:
+            return
+        self.current_theme_name = theme_name
+        self.theme = THEMES[theme_name]
+
+        # Navigasyon butonunu güncelle
+        for tid, btn in self.nav_buttons.items():
+            if tid == self.active_tab:
+                btn.configure(
+                    fg_color=self.theme["primary_container"],
+                    text_color=self.theme["on_primary_container"],
+                )
+
+        # Ana buton ve elemanları güncelle
+        if not self.is_active:
+            self.toggle_button.configure(
+                fg_color=self.theme["primary"],
+                text_color=self.theme["on_primary"],
+                hover_color=self.theme["primary_container"],
+            )
+
+        self.ip_badge.configure(text_color=self.theme["primary"])
+        self.copy_btn.configure(
+            fg_color=self.theme["primary_container"],
+            text_color=self.theme["on_primary_container"],
+        )
+        self.vu_progress.configure(progress_color=self.theme["accent"])
+        self.gain_slider.configure(
+            progress_color=self.theme["primary"],
+            button_color=self.theme["primary"],
+        )
+        self.jitter_slider.configure(
+            progress_color=self.theme["primary"],
+            button_color=self.theme["primary"],
+        )
+        self.metric_latency.configure(text_color=self.theme["primary"])
+
+    def _on_gain_slider_change(self, val: float):
+        rounded = round(val, 1)
+        self.gain_val_lbl.configure(text=f"Kazanç: {rounded}x — Sesi az giden telefonlar için artırın")
+        self.audio_engine.set_gain(rounded)
+        if "gain" in self.diag_labels:
+            self.diag_labels["gain"].configure(text=f"{rounded}x")
+
+    def _on_jitter_slider_change(self, value):
+        val_int = int(value)
+        self.jitter_val_lbl.configure(text=f"Jitter Buffer: {val_int} ms (İdeal: 20-35ms)")
+        self.audio_engine.set_target_buffer_ms(val_int)
+        if "buffer" in self.diag_labels:
+            self.diag_labels["buffer"].configure(text=f"{val_int} ms")
+
     def _copy_ip(self):
         self.clipboard_clear()
         self.clipboard_append(self.primary_ip)
-        self.copy_btn.configure(text="Kopyalandı! ✔", fg_color=M3_TERTIARY, text_color=M3_ON_TERTIARY)
-        self.after(1500, lambda: self.copy_btn.configure(text="Kopyala", fg_color=M3_PRIMARY_CONTAINER, text_color=M3_ON_PRIMARY_CONTAINER))
+        self.copy_btn.configure(text="Kopyalandı! ✔", fg_color=self.theme["accent"], text_color="#003915")
+        self.after(1500, lambda: self.copy_btn.configure(text="Kopyala", fg_color=self.theme["primary_container"], text_color=self.theme["on_primary_container"]))
+
+    def _run_firewall_fix(self):
+        bat_path = os.path.join(os.path.dirname(BASE_DIR), "fix_firewall.bat")
+        if not os.path.exists(bat_path):
+            bat_path = os.path.join(BASE_DIR, "fix_firewall.bat")
+
+        if os.path.exists(bat_path):
+            subprocess.Popen(["cmd.exe", "/c", bat_path], shell=True)
+        else:
+            # Doğrudan powershell ile ekle
+            cmd = 'Start-Process netsh -ArgumentList "advfirewall firewall add rule name=\\"mic2pc UDP 50005\\" dir=in action=allow protocol=UDP localport=50005 profile=any" -Verb RunAs'
+            subprocess.Popen(["powershell.exe", "-Command", cmd], shell=True)
 
     def _refresh_audio_devices(self):
         self.devices = AudioEngine.get_output_devices()
@@ -456,11 +734,6 @@ class Mic2PcApp(ctk.CTk):
                     self.audio_engine.start(self.selected_device_index)
                 break
 
-    def _on_jitter_slider_change(self, value):
-        val_int = int(value)
-        self.jitter_label.configure(text=f"Jitter Buffer: {val_int} ms (İdeal: 20-35ms)")
-        self.audio_engine.set_target_buffer_ms(val_int)
-
     def _on_vu_update(self, peak: float):
         display_val = min(1.0, peak * 1.5)
         self.after(0, lambda: self._update_vu_ui(display_val))
@@ -475,7 +748,7 @@ class Mic2PcApp(ctk.CTk):
         elif val > 0.65:
             self.vu_progress.configure(progress_color="#FFD700")
         else:
-            self.vu_progress.configure(progress_color=M3_TERTIARY)
+            self.vu_progress.configure(progress_color=self.theme["accent"])
 
     def _on_audio_data(self, pcm_bytes: bytes, seq: int, client_timestamp: int):
         self.audio_engine.feed_pcm(pcm_bytes)
@@ -492,27 +765,33 @@ class Mic2PcApp(ctk.CTk):
 
         client = self.network_receiver.connected_client
         if client:
-            self.status_dot.configure(text_color=M3_TERTIARY)
-            self.status_text.configure(text=f"SES AKIYOR ({client[0]})", text_color=M3_TERTIARY)
-            self.status_pill.configure(border_color=M3_TERTIARY)
+            self.nav_status_dot.configure(text_color=self.theme["accent"])
+            self.nav_status_lbl.configure(text="Ses Akıyor")
         else:
-            self.status_dot.configure(text_color="#FFD700")
-            self.status_text.configure(text="BEKLENİYOR...", text_color="#FFD700")
-            self.status_pill.configure(border_color=M3_OUTLINE)
+            self.nav_status_dot.configure(text_color="#FFD700")
+            self.nav_status_lbl.configure(text="Bekleniyor")
 
-        # Gecikme metrik rengi (Yeşil / Sarı / Kırmızı)
+        # Hızlı Metrikler
         self.metric_latency.configure(text=f"{int(latency_ms)} ms")
-        if latency_ms < 30:
-            self.metric_latency.configure(text_color=M3_TERTIARY)
-        elif latency_ms < 60:
-            self.metric_latency.configure(text_color="#FFD700")
-        else:
-            self.metric_latency.configure(text_color=M3_ERROR)
-
         self.metric_jitter.configure(text=f"{jitter_ms:.1f} ms")
         self.metric_loss.configure(text=f"%{loss_pct:.1f}")
-        self.metric_loss.configure(text_color=M3_ERROR if loss_pct > 2.0 else M3_TERTIARY)
         self.metric_pps.configure(text=f"{pps} pps")
+
+        # İstatistikler Sekmesi Güncellemesi
+        if hasattr(self, "diag_labels"):
+            if client and "client" in self.diag_labels:
+                self.diag_labels["client"].configure(text=f"{client[0]}:{client[1]}")
+            if "latency" in self.diag_labels:
+                self.diag_labels["latency"].configure(text=f"{int(latency_ms)} ms")
+            if "jitter" in self.diag_labels:
+                self.diag_labels["jitter"].configure(text=f"{jitter_ms:.1f} ms")
+            if "loss" in self.diag_labels:
+                self.diag_labels["loss"].configure(text=f"%{loss_pct:.1f}")
+            if "packets" in self.diag_labels:
+                self.diag_labels["packets"].configure(text=str(self.network_receiver.total_packets_received))
+            if "rate" in self.diag_labels:
+                kbps = (pps * 974 * 8) // 1000
+                self.diag_labels["rate"].configure(text=f"{pps} pps (~{kbps} kbps)")
 
     def _toggle_service(self):
         if not self.is_active:
@@ -530,11 +809,10 @@ class Mic2PcApp(ctk.CTk):
                 text="■  Hizmeti Durdur",
                 fg_color=M3_ERROR,
                 hover_color="#DC3545",
-                text_color=M3_ON_ERROR
+                text_color=M3_ON_ERROR,
             )
-            self.status_dot.configure(text_color="#FFD700")
-            self.status_text.configure(text="BEKLENİYOR...", text_color="#FFD700")
-            self.status_pill.configure(border_color=M3_OUTLINE)
+            self.nav_status_dot.configure(text_color="#FFD700")
+            self.nav_status_lbl.configure(text="Bekleniyor")
             self.port_entry.configure(state="disabled")
         else:
             self.network_receiver.stop()
@@ -543,13 +821,12 @@ class Mic2PcApp(ctk.CTk):
             self.is_active = False
             self.toggle_button.configure(
                 text="▶  Hizmeti Başlat",
-                fg_color=M3_PRIMARY,
-                hover_color=M3_ON_PRIMARY_CONTAINER,
-                text_color=M3_ON_PRIMARY
+                fg_color=self.theme["primary"],
+                hover_color=self.theme["primary_container"],
+                text_color=self.theme["on_primary"],
             )
-            self.status_dot.configure(text_color=M3_ERROR)
-            self.status_text.configure(text="DURDURULDU", text_color=M3_ON_SURFACE)
-            self.status_pill.configure(border_color=M3_OUTLINE)
+            self.nav_status_dot.configure(text_color=M3_ERROR)
+            self.nav_status_lbl.configure(text="Durduruldu")
             self.port_entry.configure(state="normal")
             self.vu_progress.set(0.0)
             self.vu_percent_label.configure(text="0%")

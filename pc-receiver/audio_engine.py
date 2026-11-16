@@ -25,6 +25,7 @@ class AudioEngine:
         self.channels = channels
         self.target_buffer_ms = target_buffer_ms
         self.on_vu_update = on_vu_update
+        self.gain = 1.0  # Ses Kazancı (Gain Booster) çarpanı
 
         # Hedef buffer örnek sayısı (örneğin 48000 * 0.030 = 1440 örnek)
         self.target_buffer_samples = int(self.sample_rate * (self.target_buffer_ms / 1000.0))
@@ -61,6 +62,10 @@ class AudioEngine:
             self.target_buffer_ms = max(10, min(200, ms))
             self.target_buffer_samples = int(self.sample_rate * (self.target_buffer_ms / 1000.0))
             self.max_buffer_samples = self.target_buffer_samples * 3
+
+    def set_gain(self, multiplier: float):
+        """Ses kazancı (Gain Booster) ayarlar (0.2x - 4.0x)."""
+        self.gain = max(0.2, min(4.0, multiplier))
 
     def feed_pcm(self, pcm_bytes: bytes):
         """
@@ -107,6 +112,10 @@ class AudioEngine:
         # PCM 16-bit int -> float32 [-1.0, 1.0]
         data16 = np.frombuffer(chunk, dtype=np.int16)
         data_float = data16.astype(np.float32) / 32768.0
+
+        # Mikrofon kazancı (Gain Booster)
+        if self.gain != 1.0:
+            data_float = np.clip(data_float * self.gain, -1.0, 1.0)
 
         # Eğer çıkış kanalı stereo ise mono veriyi iki kanala çoğalt
         if self.channels == 2:

@@ -1,21 +1,20 @@
 # mic2pc
 
-**mic2pc** is a high-performance, ultra-low-latency virtual microphone system designed to turn an Android device into a studio-grade PC microphone over local UDP. Built specifically for competitive gaming (e.g., CS2, Valorant, Apex Legends) and Discord voice communication, it bridges mobile audio hardware directly into Windows audio endpoints with sub-frame processing overhead.
+**mic2pc** is a high-performance, ultra-low-latency virtual microphone system that converts an Android device into a studio-grade PC microphone over local UDP. Designed with a clean **Material Design 3 (Material You)** interface inspired by modern open-source desktop clients (such as LocalSend), it bridges mobile audio hardware directly into Windows audio endpoints with sub-frame processing overhead.
 
 ---
 
 ## Architectural Overview
 
-The system consists of two decoupled components: a lightweight Android capture engine and a Windows desktop receiver interfacing with virtual audio driver inputs.
-
 ```mermaid
 flowchart LR
-    subgraph Mobile["Android Client (mic2pc)"]
+    subgraph Mobile["Android Client (Material 3)"]
         direction TB
         MIC["AudioRecord (48 kHz 16-bit PCM Mono)"]
+        GAIN["Software Gain Booster (1.0x - 2.5x)"]
         PACKET["M2 Header Assembly (Seq + Timestamp)"]
         UDP_TX["DatagramSocket (10 ms Frame)"]
-        MIC --> PACKET --> UDP_TX
+        MIC --> GAIN --> PACKET --> UDP_TX
     end
 
     subgraph Network["Transport Layer"]
@@ -23,13 +22,14 @@ flowchart LR
         USB["USB Tethering (~1-3 ms, 0% Loss)"]
     end
 
-    subgraph Desktop["Windows Receiver (PC)"]
+    subgraph Desktop["Windows Receiver (NavigationRail M3)"]
         direction TB
-        UDP_RX["NetworkReceiver (UDP :50005)"]
+        UDP_RX["NetworkReceiver (Clock-Skew Filtered UDP :50005)"]
         JITTER["Adaptive Ring Buffer (20-30 ms)"]
+        PC_GAIN["Digital Gain Booster (0.5x - 3.0x)"]
         AUDIO_ENGINE["SoundDevice WASAPI Engine"]
         VIRTUAL_IN["VB-CABLE Driver (CABLE Input)"]
-        UDP_RX --> JITTER --> AUDIO_ENGINE --> VIRTUAL_IN
+        UDP_RX --> JITTER --> PC_GAIN --> AUDIO_ENGINE --> VIRTUAL_IN
     end
 
     subgraph Consumers["Host Applications"]
@@ -41,6 +41,25 @@ flowchart LR
     WIFI & USB --> UDP_RX
     VIRTUAL_IN --> DISCORD & GAMES
 ```
+
+---
+
+## Key Features
+
+- **Material Design 3 Architecture**:
+  - **Desktop (PC)**: NavigationRail layout featuring dedicated **Stream**, **Diagnostics**, and **Settings** tabs with 5 customizable M3 color schemes (Lavender, Sapphire, Mint, Sunset, Rose).
+  - **Mobile (Android)**: M3 Bottom Navigation Bar with live telemetry, adaptive themes, audio source selection, and quick gain toggles.
+- **Hardware Noise Suppression vs. Studio Mode**:
+  - `Voice Communication Mode`: Activates hardware-level acoustic echo cancellation (AEC) and background noise suppression for clean Discord/gaming comms.
+  - `Raw Studio Mode`: Unprocessed audio capture preserving full dynamic range.
+- **Bi-Directional Digital Gain Booster**:
+  - Independent gain amplification on both phone (up to 2.5x) and PC (up to 3.0x) to eliminate quiet mobile microphone output.
+- **Clock-Skew Normalization**:
+  - Real-time offset calibration eliminates artificial wall-clock desync between phone and PC, reporting true physical network latency (10-25 ms).
+- **Permanent Firewall Configuration**:
+  - Includes a one-click automated helper script (`fix_firewall.bat`) to bind an inbound UDP rule on port `50005`, eliminating repetitive Windows Defender elevation dialogs.
+- **Zero-Dependency Executable**:
+  - Portable standalone binary (`mic2pc.exe`) bundling runtime dependencies, WASAPI drivers, and desktop tray controls into a single windowless package.
 
 ---
 
@@ -67,127 +86,63 @@ mic2pc/
 |-- android-app/                    # Android client source tree (Kotlin)
 |   |-- app/
 |   |   |-- src/main/java/com/mic2pc/app/
-|   |   |   |-- MainActivity.kt         # Runtime UI and permission management
+|   |   |   |-- MainActivity.kt         # M3 navigation, theme, and control bindings
 |   |   |   |-- AudioStreamerService.kt # Foreground service with persistent WakeLock
-|   |   |   |-- AudioCaptureEngine.kt   # Low-level 48 kHz AudioRecord handler
+|   |   |   |-- AudioCaptureEngine.kt   # Low-level 48 kHz AudioRecord handler & gain
 |   |   |   `-- UdpAudioSender.kt       # DatagramSocket serializer
-|   |   `-- src/main/res/               # Vector assets, themes, and layouts
+|   |   `-- src/main/res/               # M3 layouts, drawables, and color tokens
 |   `-- build.gradle.kts
 |-- pc-receiver/                    # Windows receiver source tree (Python)
-|   |-- audio_engine.py             # WASAPI output stream & adaptive jitter buffer
-|   |-- network_receiver.py         # Non-blocking UDP receiver & metric calculation
-|   |-- ui.py                       # Modern desktop interface and system tray
+|   |-- audio_engine.py             # WASAPI output stream, gain booster, and jitter buffer
+|   |-- network_receiver.py         # UDP receiver with clock-skew latency filter
+|   |-- ui.py                       # LocalSend-style NavigationRail M3 interface
 |   |-- main.py                     # Application entrypoint
 |   |-- requirements.txt            # Python dependencies
-|   `-- mic2pc.vbs                  # Windowless direct launcher
-|-- mic2pc.vbs                      # Root-level silent desktop launcher
+|   `-- scripts/
+|       |-- build_exe.bat           # Executable compilation script
+|       `-- tests/                  # Audio pipeline verification scripts
+|-- fix_firewall.bat                # One-click permanent firewall authorization
+|-- mic2pc.exe                      # Standalone windowless executable
 `-- README.md                       # System documentation
 ```
 
 ---
 
-## Prerequisites
+## Installation & Quick Start
 
-1. **VB-Audio Virtual Cable (Windows)**:
-   - A virtual audio device is required to present the received audio stream as a microphone device to Discord and games.
-   - Download and install the driver from the official vendor: [https://vb-audio.com/Cable/](https://vb-audio.com/Cable/)
-   - Reboot Windows after driver installation.
+### 1. Prerequisites
+- **VB-Audio Virtual Cable (Windows)**:
+  - Required to route audio into Discord and games.
+  - Download and install: [https://vb-audio.com/Cable/](https://vb-audio.com/Cable/)
+  - Reboot Windows after installation.
+- **Firewall Authorization**:
+  - Run `fix_firewall.bat` as Administrator once to register an inbound rule for port 50005.
 
-2. **Python Environment (PC)**:
-   - Python 3.10 or higher.
-   - Dependencies: `sounddevice`, `numpy`, `customtkinter`, `pystray`, `pillow`.
+### 2. Launching the PC Receiver
+Run `mic2pc.exe` in the root folder.
+- Under **Audio Output Device**, select `CABLE Input (VB-Audio Virtual Cable)`.
+- Click **Start Service**.
+- Note the displayed local IP address (e.g., `192.168.1.34`).
 
----
+### 3. Installing the Android Client
+- Download the latest APK artifact from the **Actions** tab on GitHub (`mic2pc-android-apk`).
+- Install `app-debug.apk` onto your device.
+- Enter the PC IP and tap **Start Stream**.
 
-## Quick Start Guide
-
-### 1. Launching the PC Receiver
-Double-click `mic2pc.vbs` located in the root directory. 
-
-*Note: `mic2pc.vbs` launches the application directly in background mode without spawning an intrusive command prompt (CMD) window.*
-
-- In the application window:
-  - Verify **Output Audio Device** is set to `CABLE Input (VB-Audio Virtual Cable)`.
-  - Set **Jitter Buffer** to `25 ms` (default).
-  - Click **Start Service**.
-  - Note the local IP address displayed at the top (e.g., `192.168.1.34`).
-
-### 2. Installing the Android Application
-The Android client is continuously built via GitHub Actions CI/CD.
-
-- Navigate to the **Actions** tab in this repository.
-- Select the latest workflow run on the `main` branch.
-- Scroll down to the **Artifacts** section and download `mic2pc-android-apk`.
-- Extract the ZIP archive and install `app-debug.apk` onto your Android device.
-
-Alternatively, open the `android-app` folder directly in Android Studio and build to device.
-
-### 3. Establishing Audio Stream
-- Open **mic2pc** on your Android device.
-- Grant microphone and notification permissions when prompted.
-- Enter the PC IP address and port (`50005`).
-- Tap **Start Stream**. The VU meter will immediately reflect your voice input.
-
-### 4. Discord and In-Game Configuration
-To route the phone microphone into applications:
-- **Discord**: Navigate to `User Settings > Voice & Video`.
+### 4. Discord and In-Game Setup
+- **Discord**: Go to `User Settings > Voice & Video`.
   - Set **Input Device** to `CABLE Output (VB-Audio Virtual Cable)`.
-  - Set **Output Device** to your physical headphones.
-- **In-Game Voice**: Select `CABLE Output` as your default recording device in Windows Sound Control Panel.
+  - Set **Output Device** to your physical headset.
 
 ---
 
-## Protocol Specification
-
-Each datagram packet begins with a fixed 14-byte header followed by raw PCM samples:
-
-```text
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|       Magic: 'M' '2'          |       Sequence Number         |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Sequence Number (Continued)  |      Client Timestamp         |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                  Client Timestamp (Continued)                 |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     Raw Linear PCM Samples                    |
-|                (480 samples, 16-bit, Little-Endian)           |
-|                               ...                             |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
-
-Total packet size is **974 bytes**, well below standard Ethernet and 802.11 MTU boundaries (1500 bytes), avoiding IP fragmentation entirely.
-
----
-
-## Connection Performance Profiles
+## Connection Profiles
 
 | Interface | Average Latency | Packet Loss | Recommended Usage |
 | :--- | :--- | :--- | :--- |
-| **USB Tethering** | **1 - 3 ms** | 0.0% | Competitive FPS tournaments and zero-delay broadcast |
+| **USB Tethering** | **1 - 3 ms** | 0.0% | Tournament gameplay and zero-latency broadcast |
 | **5 GHz Wi-Fi** | **15 - 25 ms** | < 0.2% | Wire-free gaming and voice communication |
-| **2.4 GHz Wi-Fi** | **35 - 60 ms** | 1.0 - 3.0% | General communication (increase buffer to 40 ms) |
-
-### Optimal Setup: USB Tethering
-For competitive esports requiring negligible latency:
-1. Connect phone via USB cable to PC.
-2. Enable **USB Tethering** in Android Network settings.
-3. A local RNDIS network interface will initialize on the PC (typically `192.168.42.x`).
-4. Enter this subnet IP into the mobile application.
-
----
-
-## Firewall Troubleshooting
-
-If the PC receiver remains on `WAITING` status after starting the stream:
-1. Open Windows Defender Firewall with Advanced Security.
-2. Create an **Inbound Rule**:
-   - Rule Type: **Port**
-   - Protocol: **UDP**
-   - Specific Local Ports: **50005**
-   - Action: **Allow the connection**
-3. Alternatively, allow `pythonw.exe` through private and public network profiles.
+| **2.4 GHz Wi-Fi** | **35 - 60 ms** | 1.0 - 3.0% | Casual calls (set buffer to 40 ms) |
 
 ---
 
