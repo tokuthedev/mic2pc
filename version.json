@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1.0",
-  "apkUrl": "https://github.com/tokuthedev/mic2pc/releases/download/v1.1.0/mic2pc.apk",
-  "changelog": "• Google Material Symbols Outlined ikonları (Yayın, İstatistikler, Ayarlar)\n• Manrope font ailesi entegrasyonu\n• Uygulama İçi Otomatik Güncelleme (In-App Auto Update)\n• Saat kayması düzeltmesi (Gerçek 10-25ms ağ gecikmesi)"
+  "versionCode": 3,
+  "versionName": "1.2.0",
+  "apkUrl": "https://github.com/tokuthedev/mic2pc/releases/download/v1.2.0/mic2pc.apk",
+  "changelog": "• Kalıcı imza anahtarı (Sabit debug.keystore - paket çakışması çözüldü)\n• Tam İngilizce ve Türkçe dil desteği (English / Türkçe)\n• Google Material Symbols Outlined ikonları ve Manrope fontu\n• Ultra düşük gecikmeli UDP ses iletimi"
 }

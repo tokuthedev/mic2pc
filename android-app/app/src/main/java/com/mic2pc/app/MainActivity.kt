@@ -14,7 +14,9 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
 import com.mic2pc.app.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -86,9 +88,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun getCurrentVersionName(): String {
         return try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.2.0"
         } catch (e: Exception) {
-            "1.0.0"
+            "1.2.0"
         }
     }
 
@@ -156,6 +158,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupSettingsControls() {
+        // Dil / Language Seçimi
+        binding.btnLangTr.setOnClickListener {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("tr"))
+        }
+        binding.btnLangEn.setOnClickListener {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
+        }
+
         // Ses Kaynağı RadioGroup
         if (selectedSource == MediaRecorder.AudioSource.MIC) {
             binding.rbSourceRawMic.isChecked = true
@@ -170,7 +180,6 @@ class MainActivity : AppCompatActivity() {
                 MediaRecorder.AudioSource.VOICE_COMMUNICATION
             }
             prefs.edit().putInt("audio_source", selectedSource).apply()
-            Toast.makeText(this, "Ses modu kaydedildi (Yayını yeniden başlatın)", Toast.LENGTH_SHORT).show()
         }
 
         // Kazanç Butonları
@@ -187,7 +196,6 @@ class MainActivity : AppCompatActivity() {
                 selectedGain = gainVal
                 binding.tvGainValue.text = "${selectedGain}x"
                 prefs.edit().putFloat("audio_gain", selectedGain).apply()
-                Toast.makeText(this, "Kazanç ${gainVal}x olarak ayarlandı", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -201,35 +209,35 @@ class MainActivity : AppCompatActivity() {
 
         // Tema Butonları
         binding.btnThemeLavender.setOnClickListener {
-            Toast.makeText(this, "Lavender Teması devrede", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Lavender", Toast.LENGTH_SHORT).show()
         }
         binding.btnThemeBlue.setOnClickListener {
-            Toast.makeText(this, "Mavi Safir Teması devrede", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Blue Sapphire", Toast.LENGTH_SHORT).show()
         }
         binding.btnThemeGreen.setOnClickListener {
-            Toast.makeText(this, "Zümrüt Yeşil Teması devrede", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Emerald Green", Toast.LENGTH_SHORT).show()
         }
         binding.btnThemeAmber.setOnClickListener {
-            Toast.makeText(this, "Amber Teması devrede", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Amber", Toast.LENGTH_SHORT).show()
         }
 
         // Otomatik Güncelleme (In-App Auto Update)
         val curVerName = getCurrentVersionName()
         val curVerCode = getCurrentVersionCode()
-        binding.tvAppVersion.text = "Mevcut Sürüm: v$curVerName (Kod: $curVerCode)"
+        binding.tvAppVersion.text = getString(R.string.section_update_cur_ver, curVerName, curVerCode)
 
         binding.btnCheckUpdate.setOnClickListener {
-            Toast.makeText(this, "Güncellemeler denetleniyor...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_checking), Toast.LENGTH_SHORT).show()
             AppUpdater.checkForUpdate(
                 currentVersionCode = curVerCode,
                 onUpdateFound = { updateInfo ->
                     AppUpdater.showUpdateDialog(this, updateInfo)
                 },
                 onUpToDate = {
-                    Toast.makeText(this, "mic2pc en güncel sürümde! (v$curVerName)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.toast_up_to_date, curVerName), Toast.LENGTH_SHORT).show()
                 },
                 onError = { err ->
-                    Toast.makeText(this, "Güncelleme denetlenemedi: $err", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.toast_check_error, err), Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -267,7 +275,7 @@ class MainActivity : AppCompatActivity() {
         val portStr = binding.etTargetPort.text.toString().trim()
 
         if (ip.isEmpty()) {
-            binding.tilIp.error = "IP adresi girin"
+            binding.tilIp.error = getString(R.string.err_enter_ip)
             return
         }
         binding.tilIp.error = null

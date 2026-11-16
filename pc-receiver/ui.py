@@ -98,24 +98,118 @@ THEMES: Dict[str, Dict[str, str]] = {
     "Rose": {
         "primary": "#FFB1C8",
         "on_primary": "#5E1133",
-        "primary_container": "#7E2648",
+        "primary_container": "#852349",
         "on_primary_container": "#FFD9E2",
-        "accent": "#A8C7FA",
+        "accent": "#6DD58C",
     },
 }
 
-# Standart M3 Yüzey Renkleri
+# Material 3 Dark Surface Renkleri
 M3_SURFACE = "#141218"
 M3_SURFACE_CONTAINER_LOW = "#1D1B20"
 M3_SURFACE_CONTAINER = "#211F26"
 M3_SURFACE_CONTAINER_HIGH = "#2B2930"
 M3_SURFACE_CONTAINER_HIGHEST = "#36343B"
-M3_SECONDARY_CONTAINER = "#4A4458"
-M3_OUTLINE = "#49454F"
 M3_ON_SURFACE = "#E6E0E9"
 M3_ON_SURFACE_VARIANT = "#CAC4D0"
+M3_OUTLINE = "#49454F"
+M3_SECONDARY_CONTAINER = "#4A4458"
+M3_ON_SECONDARY_CONTAINER = "#E8DEF8"
 M3_ERROR = "#F2B8B5"
 M3_ON_ERROR = "#601410"
+
+STRINGS: Dict[str, Dict[str, str]] = {
+    "tr": {
+        "title": "mic2pc • Material 3 Sanal Mikrofon",
+        "nav_stream": "  Yayın",
+        "nav_stats": "  İstatistikler",
+        "nav_settings": "  Ayarlar",
+        "status_stopped": "Durduruldu",
+        "status_waiting": "Bekleniyor",
+        "status_streaming": "Ses Akıyor",
+        "ip_label": "Telefondan Bağlanılacak IP: ",
+        "copy": "Kopyala",
+        "copied": "Kopyalandı! ✔",
+        "metric_latency": "Gecikme (Ping)",
+        "metric_jitter": "Jitter",
+        "metric_loss": "Paket Kaybı",
+        "metric_pps": "Paket/sn",
+        "vu_title": "Canlı Mikrofon Seviyesi",
+        "output_device_label": "Aktif Ses Çıkışı (Discord / Oyunlar için VB-CABLE):",
+        "btn_start": "▶  Hizmeti Başlat",
+        "btn_stop": "■  Hizmeti Durdur",
+        "stats_title": "Ağ ve Ses Tanılama",
+        "stat_client": "Bağlı Mobil Cihaz:",
+        "stat_latency": "Ortalama Ağ Gecikmesi:",
+        "stat_jitter": "Jitter Dalgalanması:",
+        "stat_loss": "Kayıp Paket Oranı:",
+        "stat_packets": "Toplam Alınan Paket:",
+        "stat_rate": "Anlık Akış Hızı:",
+        "stat_buffer": "Jitter Buffer Doluluğu:",
+        "stat_gain": "Aktif Kazanç (Gain):",
+        "stat_client_default": "Bağlantı bekleniyor...",
+        "stat_buffer_default": "25 ms (Stabil)",
+        "stat_gain_default": "1.0x (Varsayılan)",
+        "settings_title": "Uygulama ve Ses Ayarları",
+        "lang_section": "🌐  Dil / Language",
+        "theme_section": "🎨  Material 3 Renk Teması",
+        "gain_section": "🔊  Mikrofon Kazancı (Gain Booster)",
+        "gain_desc": "Kazanç: {}x — Sesi az giden telefonlar için artırın",
+        "net_section": "🌐  Ağ ve Gecikme Ayarları",
+        "jitter_desc": "Jitter Buffer: {} ms (İdeal: 20-35ms)",
+        "port_label": "UDP Dinleme Portu:",
+        "firewall_section": "🛡️  Sistem İzinleri ve Güvenlik Duvarı",
+        "firewall_desc": "Windows'un her açılışta izin sormasını kalıcı olarak engellemek için tek tıkla kural ekleyin.",
+        "firewall_btn": "🛡️  Güvenlik Duvarına Kalıcı İzin Ekle",
+        "tray_open": "mic2pc'yi Aç",
+        "tray_exit": "Çıkış Yap",
+    },
+    "en": {
+        "title": "mic2pc • Material 3 Virtual Microphone",
+        "nav_stream": "  Stream",
+        "nav_stats": "  Analytics",
+        "nav_settings": "  Settings",
+        "status_stopped": "Stopped",
+        "status_waiting": "Waiting",
+        "status_streaming": "Streaming",
+        "ip_label": "Connect via Phone IP: ",
+        "copy": "Copy",
+        "copied": "Copied! ✔",
+        "metric_latency": "Latency (Ping)",
+        "metric_jitter": "Jitter",
+        "metric_loss": "Packet Loss",
+        "metric_pps": "Packets/s",
+        "vu_title": "Live Microphone Level",
+        "output_device_label": "Active Audio Output (VB-CABLE for Discord / Games):",
+        "btn_start": "▶  Start Service",
+        "btn_stop": "■  Stop Service",
+        "stats_title": "Network & Audio Diagnostics",
+        "stat_client": "Connected Mobile Device:",
+        "stat_latency": "Average Network Latency:",
+        "stat_jitter": "Jitter Fluctuation:",
+        "stat_loss": "Packet Loss Ratio:",
+        "stat_packets": "Total Received Packets:",
+        "stat_rate": "Instant Stream Rate:",
+        "stat_buffer": "Jitter Buffer Occupancy:",
+        "stat_gain": "Active Gain:",
+        "stat_client_default": "Waiting for connection...",
+        "stat_buffer_default": "25 ms (Stable)",
+        "stat_gain_default": "1.0x (Default)",
+        "settings_title": "Application & Audio Settings",
+        "lang_section": "🌐  Language / Dil",
+        "theme_section": "🎨  Material 3 Color Theme",
+        "gain_section": "🔊  Microphone Gain Booster",
+        "gain_desc": "Gain: {}x — Increase for quiet phone microphones",
+        "net_section": "🌐  Network & Latency Settings",
+        "jitter_desc": "Jitter Buffer: {} ms (Ideal: 20-35ms)",
+        "port_label": "UDP Listening Port:",
+        "firewall_section": "🛡️  System Permissions & Firewall",
+        "firewall_desc": "Add a permanent firewall rule with one click to stop Windows asking every launch.",
+        "firewall_btn": "🛡️  Add Permanent Firewall Rule",
+        "tray_open": "Open mic2pc",
+        "tray_exit": "Exit",
+    },
+}
 
 
 def get_local_ip_addresses() -> List[str]:
@@ -144,7 +238,8 @@ class Mic2PcApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("mic2pc • Material 3 Virtual Microphone")
+        self.current_lang = "tr"
+        self.title(self.t("title"))
         self.geometry("860x680")
         self.minsize(780, 620)
         self.configure(fg_color=M3_SURFACE)
@@ -188,10 +283,19 @@ class Mic2PcApp(ctk.CTk):
 
         self._refresh_audio_devices()
 
+    def t(self, key: str, *args) -> str:
+        lang_dict = STRINGS.get(self.current_lang, STRINGS["tr"])
+        val = lang_dict.get(key, key)
+        if args:
+            try:
+                return val.format(*args)
+            except Exception:
+                return val
+        return val
+
     def _build_main_layout(self):
-        # Ana Konteyner: Sol NavigationRail, Sağ İçerik Alanı
-        self.grid_columnconfigure(0, weight=0)  # Sol Nav: Sabit genişlik
-        self.grid_columnconfigure(1, weight=1)  # Sağ İçerik: Esnek
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         # ---------------- SOL: M3 NAVIGATION RAIL ----------------
@@ -226,15 +330,15 @@ class Mic2PcApp(ctk.CTk):
         )
         lbl_app_name.pack(side="left")
 
-        # Navigasyon Butonları (Google Material Symbols İkonlarıyla)
+        # Navigasyon Butonları
         self.nav_icons = {
             "stream": "wifi_tethering",
             "stats": "analytics",
             "settings": "settings"
         }
-        self._create_nav_button("stream", "  Yayın", "wifi_tethering")
-        self._create_nav_button("stats", "  İstatistikler", "analytics")
-        self._create_nav_button("settings", "  Ayarlar", "settings")
+        self._create_nav_button("stream", self.t("nav_stream"), "wifi_tethering")
+        self._create_nav_button("stats", self.t("nav_stats"), "analytics")
+        self._create_nav_button("settings", self.t("nav_settings"), "settings")
 
         # Alt Kısım: Durum Hapı
         self.nav_status_frame = ctk.CTkFrame(
@@ -256,7 +360,7 @@ class Mic2PcApp(ctk.CTk):
 
         self.nav_status_lbl = ctk.CTkLabel(
             self.nav_status_frame,
-            text="Durduruldu",
+            text=self.t("status_stopped"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=11, weight="bold"),
             text_color=M3_ON_SURFACE,
         )
@@ -340,12 +444,13 @@ class Mic2PcApp(ctk.CTk):
         ip_content.pack(fill="x", padx=18, pady=12)
 
         ctk.CTkLabel(ip_content, text="📡", font=ctk.CTkFont(family=FONT_FAMILY, size=18)).pack(side="left", padx=(0, 8))
-        ctk.CTkLabel(
+        self.lbl_ip_prompt = ctk.CTkLabel(
             ip_content,
-            text="Telefondan Bağlanılacak IP: ",
+            text=self.t("ip_label"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=13),
             text_color=M3_ON_SURFACE_VARIANT,
-        ).pack(side="left")
+        )
+        self.lbl_ip_prompt.pack(side="left")
 
         self.ip_badge = ctk.CTkLabel(
             ip_content,
@@ -359,7 +464,7 @@ class Mic2PcApp(ctk.CTk):
 
         self.copy_btn = ctk.CTkButton(
             ip_content,
-            text="Kopyala",
+            text=self.t("copy"),
             width=76,
             height=30,
             corner_radius=15,
@@ -375,10 +480,10 @@ class Mic2PcApp(ctk.CTk):
         metrics_container.pack(fill="x", pady=(0, 12))
         metrics_container.columnconfigure((0, 1, 2, 3), weight=1, uniform="metric")
 
-        self.metric_latency = self._create_metric_box(metrics_container, 0, "Gecikme (Ping)", "0 ms", self.theme["primary"])
-        self.metric_jitter = self._create_metric_box(metrics_container, 1, "Jitter", "0.0 ms", self.theme["accent"])
-        self.metric_loss = self._create_metric_box(metrics_container, 2, "Paket Kaybı", "%0.0", self.theme["accent"])
-        self.metric_pps = self._create_metric_box(metrics_container, 3, "Paket/sn", "0 pps", M3_ON_SURFACE)
+        self.metric_latency, self.lbl_m_lat = self._create_metric_box(metrics_container, 0, self.t("metric_latency"), "0 ms", self.theme["primary"])
+        self.metric_jitter, self.lbl_m_jit = self._create_metric_box(metrics_container, 1, self.t("metric_jitter"), "0.0 ms", self.theme["accent"])
+        self.metric_loss, self.lbl_m_loss = self._create_metric_box(metrics_container, 2, self.t("metric_loss"), "%0.0", self.theme["accent"])
+        self.metric_pps, self.lbl_m_pps = self._create_metric_box(metrics_container, 3, self.t("metric_pps"), "0 pps", M3_ON_SURFACE)
 
         # Canlı VU Meter Kartı
         vu_card = ctk.CTkFrame(
@@ -393,12 +498,13 @@ class Mic2PcApp(ctk.CTk):
         vu_header = ctk.CTkFrame(vu_card, fg_color="transparent")
         vu_header.pack(fill="x", padx=18, pady=(12, 6))
 
-        ctk.CTkLabel(
+        self.lbl_vu_title = ctk.CTkLabel(
             vu_header,
-            text="Canlı Mikrofon Seviyesi",
+            text=self.t("vu_title"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=13, weight="bold"),
             text_color=M3_ON_SURFACE,
-        ).pack(side="left")
+        )
+        self.lbl_vu_title.pack(side="left")
 
         self.vu_percent_label = ctk.CTkLabel(
             vu_header,
@@ -428,12 +534,13 @@ class Mic2PcApp(ctk.CTk):
         )
         quick_card.pack(fill="x", pady=(0, 16))
 
-        ctk.CTkLabel(
+        self.lbl_output_dev = ctk.CTkLabel(
             quick_card,
-            text="Aktif Ses Çıkışı (Discord / Oyunlar için VB-CABLE):",
+            text=self.t("output_device_label"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
             text_color=M3_ON_SURFACE,
-        ).pack(anchor="w", padx=18, pady=(12, 4))
+        )
+        self.lbl_output_dev.pack(anchor="w", padx=18, pady=(12, 4))
 
         self.dev_combo = ctk.CTkComboBox(
             quick_card,
@@ -444,7 +551,7 @@ class Mic2PcApp(ctk.CTk):
             fg_color=M3_SURFACE_CONTAINER_HIGHEST,
             border_color=M3_OUTLINE,
             button_color=M3_SURFACE_CONTAINER_HIGH,
-            values=["Yükleniyor..."],
+            values=["Loading..."],
             command=self._on_device_selected,
         )
         self.dev_combo.pack(fill="x", padx=18, pady=(0, 14))
@@ -452,7 +559,7 @@ class Mic2PcApp(ctk.CTk):
         # Alt Büyük Başlat/Durdur Butonu
         self.toggle_button = ctk.CTkButton(
             tab,
-            text="▶  Hizmeti Başlat",
+            text=self.t("btn_start"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=16, weight="bold"),
             height=54,
             corner_radius=27,
@@ -473,12 +580,13 @@ class Mic2PcApp(ctk.CTk):
         )
         card.grid(row=0, column=col, padx=4, sticky="nsew")
 
-        ctk.CTkLabel(
+        lbl_title = ctk.CTkLabel(
             card,
             text=title,
             font=ctk.CTkFont(family=FONT_FAMILY, size=10),
             text_color=M3_ON_SURFACE_VARIANT,
-        ).pack(pady=(10, 0))
+        )
+        lbl_title.pack(pady=(10, 0))
 
         lbl_v = ctk.CTkLabel(
             card,
@@ -487,19 +595,20 @@ class Mic2PcApp(ctk.CTk):
             text_color=accent_color,
         )
         lbl_v.pack(pady=(2, 10))
-        return lbl_v
+        return lbl_v, lbl_title
 
     # ================= 2. İSTATİSTİKLER SEKMESİ (STATS) =================
     def _build_stats_tab(self):
         tab = ctk.CTkFrame(self.content_area, fg_color="transparent")
         self.tab_frames["stats"] = tab
 
-        ctk.CTkLabel(
+        self.lbl_stats_title = ctk.CTkLabel(
             tab,
-            text="Ağ ve Ses Tanılama",
+            text=self.t("stats_title"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=18, weight="bold"),
             text_color=M3_ON_SURFACE,
-        ).pack(anchor="w", pady=(0, 12))
+        )
+        self.lbl_stats_title.pack(anchor="w", pady=(0, 12))
 
         # Detaylar Kartı
         stats_card = ctk.CTkFrame(
@@ -515,27 +624,30 @@ class Mic2PcApp(ctk.CTk):
         content.pack(fill="both", expand=True, padx=20, pady=16)
 
         self.diag_labels: Dict[str, ctk.CTkLabel] = {}
+        self.diag_title_labels: Dict[str, ctk.CTkLabel] = {}
         items = [
-            ("client", "Bağlı Mobil Cihaz:", "Bağlantı bekleniyor..."),
-            ("latency", "Ortalama Ağ Gecikmesi:", "0 ms"),
-            ("jitter", "Jitter Dalgalanması:", "0.0 ms"),
-            ("loss", "Kayıp Paket Oranı:", "%0.0"),
-            ("packets", "Toplam Alınan Paket:", "0"),
-            ("rate", "Anlık Akış Hızı:", "0 pps (~0 kbps)"),
-            ("buffer", "Jitter Buffer Doluluğu:", "25 ms (Stabil)"),
-            ("gain", "Aktif Kazanç (Gain):", "1.0x (Varsayılan)"),
+            ("client", "stat_client", self.t("stat_client_default")),
+            ("latency", "stat_latency", "0 ms"),
+            ("jitter", "stat_jitter", "0.0 ms"),
+            ("loss", "stat_loss", "%0.0"),
+            ("packets", "stat_packets", "0"),
+            ("rate", "stat_rate", "0 pps (~0 kbps)"),
+            ("buffer", "stat_buffer", self.t("stat_buffer_default")),
+            ("gain", "stat_gain", self.t("stat_gain_default")),
         ]
 
-        for i, (key, label_text, default_val) in enumerate(items):
+        for i, (key, str_key, default_val) in enumerate(items):
             row = ctk.CTkFrame(content, fg_color="transparent")
             row.pack(fill="x", pady=6)
 
-            ctk.CTkLabel(
+            t_lbl = ctk.CTkLabel(
                 row,
-                text=label_text,
+                text=self.t(str_key),
                 font=ctk.CTkFont(family=FONT_FAMILY, size=13),
                 text_color=M3_ON_SURFACE_VARIANT,
-            ).pack(side="left")
+            )
+            t_lbl.pack(side="left")
+            self.diag_title_labels[key] = t_lbl
 
             val_lbl = ctk.CTkLabel(
                 row,
@@ -555,17 +667,47 @@ class Mic2PcApp(ctk.CTk):
         )
         self.tab_frames["settings"] = tab
 
-        ctk.CTkLabel(
+        self.lbl_settings_head = ctk.CTkLabel(
             tab,
-            text="Uygulama ve Ses Ayarları",
+            text=self.t("settings_title"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=18, weight="bold"),
             text_color=M3_ON_SURFACE,
-        ).pack(anchor="w", pady=(0, 14))
+        )
+        self.lbl_settings_head.pack(anchor="w", pady=(0, 14))
+
+        # 0. DİL SEÇİMİ (LANGUAGE)
+        self.card_lang, self.lbl_card_lang = self._create_settings_card(tab, self.t("lang_section"))
+
+        lang_btn_row = ctk.CTkFrame(self.card_lang, fg_color="transparent")
+        lang_btn_row.pack(fill="x", padx=18, pady=(4, 16))
+
+        self.btn_lang_tr = ctk.CTkButton(
+            lang_btn_row,
+            text="Türkçe",
+            width=90,
+            height=34,
+            corner_radius=17,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
+            command=lambda: self.set_language("tr"),
+        )
+        self.btn_lang_tr.pack(side="left", padx=(0, 8))
+
+        self.btn_lang_en = ctk.CTkButton(
+            lang_btn_row,
+            text="English",
+            width=90,
+            height=34,
+            corner_radius=17,
+            font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
+            command=lambda: self.set_language("en"),
+        )
+        self.btn_lang_en.pack(side="left")
+        self._update_lang_buttons()
 
         # 1. TEMA VE RENK PALETİ
-        theme_card = self._create_settings_card(tab, "🎨  Material 3 Renk Teması")
+        self.card_theme, self.lbl_card_theme = self._create_settings_card(tab, self.t("theme_section"))
 
-        theme_btn_row = ctk.CTkFrame(theme_card, fg_color="transparent")
+        theme_btn_row = ctk.CTkFrame(self.card_theme, fg_color="transparent")
         theme_btn_row.pack(fill="x", padx=18, pady=(4, 16))
 
         for tname, tcolors in THEMES.items():
@@ -584,18 +726,18 @@ class Mic2PcApp(ctk.CTk):
             btn.pack(side="left", padx=4)
 
         # 2. MİKROFON KAZANCI (GAIN BOOSTER)
-        gain_card = self._create_settings_card(tab, "🔊  Mikrofon Kazancı (Gain Booster)")
+        self.card_gain, self.lbl_card_gain = self._create_settings_card(tab, self.t("gain_section"))
 
         self.gain_val_lbl = ctk.CTkLabel(
-            gain_card,
-            text="Kazanç: 1.0x (Normal) — Sesi az giden telefonlar için artırın",
+            self.card_gain,
+            text=self.t("gain_desc", 1.0),
             font=ctk.CTkFont(family=FONT_FAMILY, size=12),
             text_color=M3_ON_SURFACE_VARIANT,
         )
         self.gain_val_lbl.pack(anchor="w", padx=18, pady=(4, 6))
 
         self.gain_slider = ctk.CTkSlider(
-            gain_card,
+            self.card_gain,
             from_=0.5,
             to=3.0,
             number_of_steps=25,
@@ -607,18 +749,18 @@ class Mic2PcApp(ctk.CTk):
         self.gain_slider.pack(fill="x", padx=18, pady=(0, 16))
 
         # 3. JITTER BUFFER VE UDP PORT
-        net_card = self._create_settings_card(tab, "🌐  Ağ ve Gecikme Ayarları")
+        self.card_net, self.lbl_card_net = self._create_settings_card(tab, self.t("net_section"))
 
         self.jitter_val_lbl = ctk.CTkLabel(
-            net_card,
-            text="Jitter Buffer: 25 ms (İdeal: 20-35ms)",
+            self.card_net,
+            text=self.t("jitter_desc", 25),
             font=ctk.CTkFont(family=FONT_FAMILY, size=12),
             text_color=M3_ON_SURFACE_VARIANT,
         )
         self.jitter_val_lbl.pack(anchor="w", padx=18, pady=(4, 6))
 
         self.jitter_slider = ctk.CTkSlider(
-            net_card,
+            self.card_net,
             from_=10,
             to=100,
             number_of_steps=18,
@@ -630,15 +772,16 @@ class Mic2PcApp(ctk.CTk):
         self.jitter_slider.pack(fill="x", padx=18, pady=(0, 14))
 
         # UDP Port Alanı
-        port_row = ctk.CTkFrame(net_card, fg_color="transparent")
+        port_row = ctk.CTkFrame(self.card_net, fg_color="transparent")
         port_row.pack(fill="x", padx=18, pady=(0, 16))
 
-        ctk.CTkLabel(
+        self.lbl_port = ctk.CTkLabel(
             port_row,
-            text="UDP Dinleme Portu:",
+            text=self.t("port_label"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
             text_color=M3_ON_SURFACE,
-        ).pack(side="left", padx=(0, 12))
+        )
+        self.lbl_port.pack(side="left", padx=(0, 12))
 
         self.port_entry = ctk.CTkEntry(
             port_row,
@@ -653,18 +796,19 @@ class Mic2PcApp(ctk.CTk):
         self.port_entry.pack(side="left")
 
         # 4. GÜVENLİK DUVARI VE ARAÇLAR
-        tools_card = self._create_settings_card(tab, "🛡️  Sistem İzinleri ve Güvenlik Duvarı")
+        self.card_firewall, self.lbl_card_firewall = self._create_settings_card(tab, self.t("firewall_section"))
 
-        ctk.CTkLabel(
-            tools_card,
-            text="Windows'un her açılışta izin sormasını kalıcı olarak engellemek için tek tıkla kural ekleyin.",
+        self.lbl_firewall_desc = ctk.CTkLabel(
+            self.card_firewall,
+            text=self.t("firewall_desc"),
             font=ctk.CTkFont(family=FONT_FAMILY, size=12),
             text_color=M3_ON_SURFACE_VARIANT,
-        ).pack(anchor="w", padx=18, pady=(4, 10))
+        )
+        self.lbl_firewall_desc.pack(anchor="w", padx=18, pady=(4, 10))
 
-        firewall_btn = ctk.CTkButton(
-            tools_card,
-            text="🛡️  Güvenlik Duvarına Kalıcı İzin Ekle",
+        self.firewall_btn = ctk.CTkButton(
+            self.card_firewall,
+            text=self.t("firewall_btn"),
             height=36,
             corner_radius=18,
             font=ctk.CTkFont(family=FONT_FAMILY, size=12, weight="bold"),
@@ -675,9 +819,9 @@ class Mic2PcApp(ctk.CTk):
             border_color=M3_OUTLINE,
             command=self._run_firewall_fix,
         )
-        firewall_btn.pack(anchor="w", padx=18, pady=(0, 16))
+        self.firewall_btn.pack(anchor="w", padx=18, pady=(0, 16))
 
-    def _create_settings_card(self, parent, title: str) -> ctk.CTkFrame:
+    def _create_settings_card(self, parent, title: str) -> Tuple[ctk.CTkFrame, ctk.CTkLabel]:
         card = ctk.CTkFrame(
             parent,
             corner_radius=20,
@@ -687,13 +831,98 @@ class Mic2PcApp(ctk.CTk):
         )
         card.pack(fill="x", pady=(0, 12))
 
-        ctk.CTkLabel(
+        lbl = ctk.CTkLabel(
             card,
             text=title,
             font=ctk.CTkFont(family=FONT_FAMILY, size=14, weight="bold"),
             text_color=M3_ON_SURFACE,
-        ).pack(anchor="w", padx=18, pady=(14, 4))
-        return card
+        )
+        lbl.pack(anchor="w", padx=18, pady=(14, 4))
+        return card, lbl
+
+    def set_language(self, lang_code: str):
+        if lang_code not in STRINGS:
+            return
+        self.current_lang = lang_code
+        self.title(self.t("title"))
+
+        # Navigasyon
+        self.nav_buttons["stream"].configure(text=self.t("nav_stream"))
+        self.nav_buttons["stats"].configure(text=self.t("nav_stats"))
+        self.nav_buttons["settings"].configure(text=self.t("nav_settings"))
+
+        # Durum
+        if not self.is_active:
+            self.nav_status_lbl.configure(text=self.t("status_stopped"))
+            self.toggle_button.configure(text=self.t("btn_start"))
+        else:
+            client = self.network_receiver.connected_client
+            self.nav_status_lbl.configure(text=self.t("status_streaming") if client else self.t("status_waiting"))
+            self.toggle_button.configure(text=self.t("btn_stop"))
+
+        # Yayın Sekmesi
+        self.lbl_ip_prompt.configure(text=self.t("ip_label"))
+        self.copy_btn.configure(text=self.t("copy"))
+        self.lbl_m_lat.configure(text=self.t("metric_latency"))
+        self.lbl_m_jit.configure(text=self.t("metric_jitter"))
+        self.lbl_m_loss.configure(text=self.t("metric_loss"))
+        self.lbl_m_pps.configure(text=self.t("metric_pps"))
+        self.lbl_vu_title.configure(text=self.t("vu_title"))
+        self.lbl_output_dev.configure(text=self.t("output_device_label"))
+
+        # İstatistikler Sekmesi
+        self.lbl_stats_title.configure(text=self.t("stats_title"))
+        str_keys = {
+            "client": "stat_client",
+            "latency": "stat_latency",
+            "jitter": "stat_jitter",
+            "loss": "stat_loss",
+            "packets": "stat_packets",
+            "rate": "stat_rate",
+            "buffer": "stat_buffer",
+            "gain": "stat_gain",
+        }
+        for k, sk in str_keys.items():
+            if k in self.diag_title_labels:
+                self.diag_title_labels[k].configure(text=self.t(sk))
+
+        # Ayarlar Sekmesi
+        self.lbl_settings_head.configure(text=self.t("settings_title"))
+        self.lbl_card_lang.configure(text=self.t("lang_section"))
+        self.lbl_card_theme.configure(text=self.t("theme_section"))
+        self.lbl_card_gain.configure(text=self.t("gain_section"))
+        self.lbl_card_net.configure(text=self.t("net_section"))
+        self.lbl_port.configure(text=self.t("port_label"))
+        self.lbl_card_firewall.configure(text=self.t("firewall_section"))
+        self.lbl_firewall_desc.configure(text=self.t("firewall_desc"))
+        self.firewall_btn.configure(text=self.t("firewall_btn"))
+
+        gain_val = round(self.gain_slider.get(), 1)
+        self.gain_val_lbl.configure(text=self.t("gain_desc", gain_val))
+        buf_val = int(self.jitter_slider.get())
+        self.jitter_val_lbl.configure(text=self.t("jitter_desc", buf_val))
+
+        self._update_lang_buttons()
+
+    def _update_lang_buttons(self):
+        if self.current_lang == "tr":
+            self.btn_lang_tr.configure(
+                fg_color=self.theme["primary"],
+                text_color=self.theme["on_primary"],
+            )
+            self.btn_lang_en.configure(
+                fg_color=M3_SURFACE_CONTAINER_HIGHEST,
+                text_color=M3_ON_SURFACE,
+            )
+        else:
+            self.btn_lang_en.configure(
+                fg_color=self.theme["primary"],
+                text_color=self.theme["on_primary"],
+            )
+            self.btn_lang_tr.configure(
+                fg_color=M3_SURFACE_CONTAINER_HIGHEST,
+                text_color=M3_ON_SURFACE,
+            )
 
     def _apply_theme(self, theme_name: str):
         if theme_name not in THEMES:
@@ -735,17 +964,18 @@ class Mic2PcApp(ctk.CTk):
             button_color=self.theme["primary"],
         )
         self.metric_latency.configure(text_color=self.theme["primary"])
+        self._update_lang_buttons()
 
     def _on_gain_slider_change(self, val: float):
         rounded = round(val, 1)
-        self.gain_val_lbl.configure(text=f"Kazanç: {rounded}x — Sesi az giden telefonlar için artırın")
+        self.gain_val_lbl.configure(text=self.t("gain_desc", rounded))
         self.audio_engine.set_gain(rounded)
         if "gain" in self.diag_labels:
             self.diag_labels["gain"].configure(text=f"{rounded}x")
 
     def _on_jitter_slider_change(self, value):
         val_int = int(value)
-        self.jitter_val_lbl.configure(text=f"Jitter Buffer: {val_int} ms (İdeal: 20-35ms)")
+        self.jitter_val_lbl.configure(text=self.t("jitter_desc", val_int))
         self.audio_engine.set_target_buffer_ms(val_int)
         if "buffer" in self.diag_labels:
             self.diag_labels["buffer"].configure(text=f"{val_int} ms")
@@ -753,8 +983,8 @@ class Mic2PcApp(ctk.CTk):
     def _copy_ip(self):
         self.clipboard_clear()
         self.clipboard_append(self.primary_ip)
-        self.copy_btn.configure(text="Kopyalandı! ✔", fg_color=self.theme["accent"], text_color="#003915")
-        self.after(1500, lambda: self.copy_btn.configure(text="Kopyala", fg_color=self.theme["primary_container"], text_color=self.theme["on_primary_container"]))
+        self.copy_btn.configure(text=self.t("copied"), fg_color=self.theme["accent"], text_color="#003915")
+        self.after(1500, lambda: self.copy_btn.configure(text=self.t("copy"), fg_color=self.theme["primary_container"], text_color=self.theme["on_primary_container"]))
 
     def _run_firewall_fix(self):
         bat_path = os.path.join(os.path.dirname(BASE_DIR), "fix_firewall.bat")
@@ -764,7 +994,6 @@ class Mic2PcApp(ctk.CTk):
         if os.path.exists(bat_path):
             subprocess.Popen(["cmd.exe", "/c", bat_path], shell=True)
         else:
-            # Doğrudan powershell ile ekle
             cmd = 'Start-Process netsh -ArgumentList "advfirewall firewall add rule name=\\"mic2pc UDP 50005\\" dir=in action=allow protocol=UDP localport=50005 profile=any" -Verb RunAs'
             subprocess.Popen(["powershell.exe", "-Command", cmd], shell=True)
 
@@ -827,10 +1056,10 @@ class Mic2PcApp(ctk.CTk):
         client = self.network_receiver.connected_client
         if client:
             self.nav_status_dot.configure(text_color=self.theme["accent"])
-            self.nav_status_lbl.configure(text="Ses Akıyor")
+            self.nav_status_lbl.configure(text=self.t("status_streaming"))
         else:
             self.nav_status_dot.configure(text_color="#FFD700")
-            self.nav_status_lbl.configure(text="Bekleniyor")
+            self.nav_status_lbl.configure(text=self.t("status_waiting"))
 
         # Hızlı Metrikler
         self.metric_latency.configure(text=f"{int(latency_ms)} ms")
@@ -867,13 +1096,13 @@ class Mic2PcApp(ctk.CTk):
 
             self.is_active = True
             self.toggle_button.configure(
-                text="■  Hizmeti Durdur",
+                text=self.t("btn_stop"),
                 fg_color=M3_ERROR,
                 hover_color="#DC3545",
                 text_color=M3_ON_ERROR,
             )
             self.nav_status_dot.configure(text_color="#FFD700")
-            self.nav_status_lbl.configure(text="Bekleniyor")
+            self.nav_status_lbl.configure(text=self.t("status_waiting"))
             self.port_entry.configure(state="disabled")
         else:
             self.network_receiver.stop()
@@ -881,13 +1110,13 @@ class Mic2PcApp(ctk.CTk):
 
             self.is_active = False
             self.toggle_button.configure(
-                text="▶  Hizmeti Başlat",
+                text=self.t("btn_start"),
                 fg_color=self.theme["primary"],
                 hover_color=self.theme["primary_container"],
                 text_color=self.theme["on_primary"],
             )
             self.nav_status_dot.configure(text_color=M3_ERROR)
-            self.nav_status_lbl.configure(text="Durduruldu")
+            self.nav_status_lbl.configure(text=self.t("status_stopped"))
             self.port_entry.configure(state="normal")
             self.vu_progress.set(0.0)
             self.vu_percent_label.configure(text="0%")
@@ -901,8 +1130,8 @@ class Mic2PcApp(ctk.CTk):
                 image = Image.new("RGBA", (64, 64), color=(208, 188, 255))
 
             menu = pystray.Menu(
-                pystray.MenuItem("mic2pc'yi Aç", self._restore_from_tray, default=True),
-                pystray.MenuItem("Çıkış Yap", self._exit_application),
+                pystray.MenuItem(self.t("tray_open"), self._restore_from_tray, default=True),
+                pystray.MenuItem(self.t("tray_exit"), self._exit_application),
             )
             self.tray_icon = pystray.Icon("mic2pc", image, "mic2pc Receiver", menu)
             threading.Thread(target=self.tray_icon.run, daemon=True).start()

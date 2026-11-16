@@ -90,19 +90,25 @@ object AppUpdater {
     }
 
     fun showUpdateDialog(activity: Activity, updateInfo: UpdateInfo) {
+        val title = activity.getString(R.string.update_dialog_title, updateInfo.versionName)
+        val msg = activity.getString(R.string.update_dialog_msg, updateInfo.changelog)
+        val btnInstall = activity.getString(R.string.update_btn_install)
+        val btnLater = activity.getString(R.string.update_btn_later)
+
         MaterialAlertDialogBuilder(activity)
-            .setTitle("🚀 Yeni Güncelleme: v${updateInfo.versionName}")
-            .setMessage("${updateInfo.changelog}\n\nŞimdi indirmek ve güncellemek istiyor musunuz?")
-            .setPositiveButton("Hemen Güncelle") { _, _ ->
+            .setTitle(title)
+            .setMessage(msg)
+            .setPositiveButton(btnInstall) { _, _ ->
                 startDownloadWithManager(activity, updateInfo.apkUrl, updateInfo.versionName)
             }
-            .setNegativeButton("Daha Sonra", null)
+            .setNegativeButton(btnLater, null)
             .setCancelable(true)
             .show()
     }
 
     private fun startDownloadWithManager(activity: Activity, apkUrl: String, versionName: String) {
-        Toast.makeText(activity, "mic2pc v$versionName indiriliyor...", Toast.LENGTH_SHORT).show()
+        val msg = activity.getString(R.string.toast_downloading, versionName)
+        Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
 
         try {
             val fileName = "mic2pc-v$versionName.apk"
@@ -150,7 +156,11 @@ object AppUpdater {
                                     launchApkInstall(activity, downloadedFile)
                                 }
                             } else if (status == DownloadManager.STATUS_FAILED) {
-                                Toast.makeText(activity, "Güncelleme dosyası indirilemedi.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    activity,
+                                    activity.getString(R.string.toast_download_fail),
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         }
                     }
@@ -182,7 +192,7 @@ object AppUpdater {
                 if (!context.packageManager.canRequestPackageInstalls()) {
                     Toast.makeText(
                         context,
-                        "Lütfen mic2pc için 'Bilinmeyen uygulamaları yükle' iznini açın",
+                        context.getString(R.string.toast_permission_prompt),
                         Toast.LENGTH_LONG
                     ).show()
                     val permissionIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
@@ -212,7 +222,8 @@ object AppUpdater {
 
             context.startActivity(installIntent)
         } catch (e: Exception) {
-            Toast.makeText(context, "Kurulum başlatılamadı: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            val failMsg = context.getString(R.string.toast_install_fail, e.localizedMessage ?: "")
+            Toast.makeText(context, failMsg, Toast.LENGTH_LONG).show()
         }
     }
 }

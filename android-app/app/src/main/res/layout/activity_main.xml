@@ -36,7 +36,7 @@
                 android:id="@+id/tvHeaderTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="mic2pc"
+                android:text="@string/title_app"
                 android:textColor="@color/m3_on_surface"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -45,7 +45,7 @@
                 android:id="@+id/tvHeaderSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Material 3 • 48 kHz Low-Latency Mic"
+                android:text="@string/subtitle_app"
                 android:textColor="@color/m3_on_surface_variant"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -121,7 +121,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hedef Bilgisayar"
+                    android:text="@string/target_pc_title"
                     android:textColor="@color/m3_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -130,7 +130,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="PC alıcısında gösterilen IP adresi ve portu girin."
+                    android:text="@string/target_pc_desc"
                     android:textColor="@color/m3_on_surface_variant"
                     android:textSize="12sp" />
 
@@ -141,7 +141,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:hint="PC Yerel IP Adresi"
+                    android:hint="@string/ip_hint"
                     app:boxCornerRadiusBottomEnd="14dp"
                     app:boxCornerRadiusBottomStart="14dp"
                     app:boxCornerRadiusTopEnd="14dp"
@@ -166,7 +166,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:hint="UDP Port"
+                    android:hint="@string/port_hint"
                     app:boxCornerRadiusBottomEnd="14dp"
                     app:boxCornerRadiusBottomStart="14dp"
                     app:boxCornerRadiusTopEnd="14dp"
@@ -216,7 +216,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Mikrofon Ses Seviyesi"
+                        android:text="@string/mic_level_title"
                         android:textColor="@color/m3_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -288,6 +288,68 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- 0. Dil Seçimi (Language) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardBackgroundColor="@color/m3_surface_container"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/m3_outline_variant"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="18dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/section_language"
+                        android:textColor="@color/m3_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/section_language_desc"
+                        android:textColor="@color/m3_on_surface_variant"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnLangTr"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/lang_tr"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnLangEn"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:text="@string/lang_en"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- 1. M3 Tema ve Renkler -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -308,7 +370,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎨 Tema ve Görünüm"
+                        android:text="@string/section_theme"
                         android:textColor="@color/m3_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -317,7 +379,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Material 3 dinamik vurgu rengi"
+                        android:text="@string/section_theme_desc"
                         android:textColor="@color/m3_on_surface_variant"
                         android:textSize="12sp" />
 
@@ -334,7 +396,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Mor"
+                            android:text="@string/theme_lavender"
                             android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -344,7 +406,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
-                            android:text="Mavi"
+                            android:text="@string/theme_blue"
                             android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -354,7 +416,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
-                            android:text="Yeşil"
+                            android:text="@string/theme_green"
                             android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -364,7 +426,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
-                            android:text="Amber"
+                            android:text="@string/theme_amber"
                             android:textSize="11sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -390,7 +452,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎙️ Ses Kaynağı ve Donanım Filtresi"
+                        android:text="@string/section_audio_source"
                         android:textColor="@color/m3_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -399,7 +461,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Discord ve oyunlarda arka plan gürültüsünü filtreler"
+                        android:text="@string/section_audio_source_desc"
                         android:textColor="@color/m3_on_surface_variant"
                         android:textSize="12sp" />
 
@@ -414,7 +476,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:checked="true"
-                            android:text="Gürültü Engelleme (Discord / Oyunlar)"
+                            android:text="@string/source_noise_suppression"
                             android:textColor="@color/m3_on_surface"
                             android:textSize="13sp" />
 
@@ -422,7 +484,7 @@
                             android:id="@+id/rbSourceRawMic"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Stüdyo / Ham Mikrofon (Filtresiz)"
+                            android:text="@string/source_raw_mic"
                             android:textColor="@color/m3_on_surface"
                             android:textSize="13sp" />
                     </RadioGroup>
@@ -456,7 +518,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🔊 Mikrofon Kazancı (Gain)"
+                            android:text="@string/section_gain"
                             android:textColor="@color/m3_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -475,7 +537,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Sesi az giden telefonlar için sesi dijital olarak yükseltir"
+                        android:text="@string/section_gain_desc"
                         android:textColor="@color/m3_on_surface_variant"
                         android:textSize="12sp" />
 
@@ -555,7 +617,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="💡 Ekranı Açık Tut"
+                            android:text="@string/section_screen"
                             android:textColor="@color/m3_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -564,7 +626,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Yayın sırasında ekranın kapanmasını önler"
+                            android:text="@string/section_screen_desc"
                             android:textColor="@color/m3_on_surface_variant"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -580,7 +642,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/m3_surface_container"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
@@ -596,7 +658,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🚀 Ultra Düşük Gecikme İpucu (1-3 ms)"
+                        android:text="@string/section_tethering_tip_title"
                         android:textColor="@color/m3_primary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -606,7 +668,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:lineSpacingExtra="3dp"
-                        android:text="Telefonunuzu USB kablosuyla PC'ye bağlayıp 'USB Tethering (USB İnternet Paylaşımı)' açarsanız, gecikme 1-3 ms seviyesine düşer ve sıfır paket kaybı elde edilir!"
+                        android:text="@string/section_tethering_tip_desc"
                         android:textColor="@color/m3_on_surface_variant"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -644,7 +706,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="🔄 Uygulama Güncellemesi"
+                                android:text="@string/section_update_title"
                                 android:textColor="@color/m3_primary"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -654,7 +716,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="Mevcut Sürüm: v1.0.0"
+                                android:text="Mevcut Sürüm: v1.1.0"
                                 android:textColor="@color/m3_on_surface_variant"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -664,7 +726,7 @@
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Denetle"
+                            android:text="@string/btn_check_update"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">mic2pc</string>
+    <string name="title_app">mic2pc</string>
+    <string name="subtitle_app">Material 3 • 48 kHz Low-Latency Mic</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_streaming">Streaming Live Audio...</string>
+    <string name="target_pc_title">Target Computer</string>
+    <string name="target_pc_desc">Enter the IP address and port shown on the PC receiver.</string>
+    <string name="ip_hint">PC Local IP Address</string>
+    <string name="port_hint">UDP Port</string>
+    <string name="mic_level_title">Microphone Level</string>
+    <string name="btn_start">Start Streaming</string>
+    <string name="btn_stop">Stop Streaming</string>
+    <string name="perm_mic_required">Microphone permission is required.</string>
+
+    <!-- Settings Tab -->
+    <string name="section_language">🌐 Language / Dil</string>
+    <string name="section_language_desc">Choose application interface language</string>
+    <string name="lang_tr">Türkçe</string>
+    <string name="lang_en">English</string>
+
+    <string name="section_theme">🎨 Theme &amp; Appearance</string>
+    <string name="section_theme_desc">Material 3 dynamic accent color</string>
+    <string name="theme_lavender">Purple</string>
+    <string name="theme_blue">Blue</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_amber">Amber</string>
+
+    <string name="section_audio_source">🎙️ Audio Source &amp; Hardware Filter</string>
+    <string name="section_audio_source_desc">Filters background noise for Discord and games</string>
+    <string name="source_noise_suppression">Noise Suppression (Discord / Gaming)</string>
+    <string name="source_raw_mic">Studio / Raw Mic (Unprocessed)</string>
+
+    <string name="section_gain">🔊 Microphone Gain Booster</string>
+    <string name="section_gain_desc">Digitally boosts input volume for quiet phone microphones</string>
+
+    <string name="section_screen">💡 Keep Screen On</string>
+    <string name="section_screen_desc">Prevents screen from turning off while streaming</string>
+
+    <string name="section_tethering_tip_title">🚀 Ultra Low Latency Tip (1-3 ms)</string>
+    <string name="section_tethering_tip_desc">Connect your phone to PC via USB cable and enable \'USB Tethering\' for 1-3 ms latency with zero packet loss!</string>
+
+    <string name="section_update_title">🔄 Application Update</string>
+    <string name="section_update_cur_ver">Current Version: v%1$s (Code: %2$d)</string>
+    <string name="btn_check_update">Check</string>
+
+    <!-- Navigation -->
+    <string name="nav_stream">Stream</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Update Dialog & Notifications -->
+    <string name="update_dialog_title">🚀 New Update: v%1$s</string>
+    <string name="update_dialog_msg">%1$s\n\nWould you like to download and install now?</string>
+    <string name="update_btn_install">Update Now</string>
+    <string name="update_btn_later">Later</string>
+    <string name="toast_up_to_date">mic2pc is up to date! (v%1$s)</string>
+    <string name="toast_check_error">Failed to check updates: %1$s</string>
+    <string name="toast_checking">Checking for updates...</string>
+    <string name="toast_downloading">Downloading mic2pc v%1$s...</string>
+    <string name="toast_permission_prompt">Please allow \'Install unknown apps\' for mic2pc</string>
+    <string name="toast_download_fail">Failed to download update file.</string>
+    <string name="toast_install_fail">Could not start installation: %1$s</string>
+    <string name="err_enter_ip">Please enter target IP address</string>
+</resources>

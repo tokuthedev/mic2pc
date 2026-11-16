@@ -3,9 +3,9 @@
     <item
         android:id="@+id/nav_stream"
         android:icon="@drawable/ic_wifi_tethering"
-        android:title="Yayın" />
+        android:title="@string/nav_stream" />
     <item
         android:id="@+id/nav_settings"
         android:icon="@drawable/ic_settings"
-        android:title="Ayarlar" />
+        android:title="@string/nav_settings" />
 </menu>
